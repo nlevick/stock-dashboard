@@ -47,18 +47,6 @@ Visit `http://localhost:5173`
 npm run deploy
 ```
 
-## 📁 Project Structure
-
-```
-src/
-├── components/       # Reusable React components (Week 2-3)
-├── services/         # API integration
-├── types/            # TypeScript interfaces
-├── styles/           # Theme and global styles
-├── App.tsx          # Main application
-└── main.tsx         # Entry point
-```
-
 ## 🛠️ Tech Stack
 
 - **React 18** - UI library
@@ -116,7 +104,7 @@ This project demonstrates production-ready component patterns:
 
 ## 🔗 Links
 
-- [Live Demo](#) (Coming soon)
+- [Live Demo](https://nlevick.github.io/stock-dashboard/) (Coming soon)
 - [Alpha Vantage API Docs](https://www.alphavantage.co/documentation/)
 
 ## 📄 License
