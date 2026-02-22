@@ -23,7 +23,7 @@ This project showcases:
 
 ```bash
 # Clone the repo
-git clone [your-repo-url]
+git clone git@github.com:nlevick/stock-dashboard.git
 cd stock-dashboard
 
 # Install dependencies
@@ -111,7 +111,7 @@ This project demonstrates production-ready component patterns:
 ## 📝 Notes
 
 - Alpha Vantage free tier: 25 API calls/day, 500 calls/minute
-- Using 'demo' API key loads IBM stock data only
+- Using 'demo' API key loads IBIT stock data only
 - For production use, get your own API key and add rate limiting
 
 ## 🔗 Links
