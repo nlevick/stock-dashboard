@@ -165,7 +165,8 @@ button {
   overflow-wrap: anywhere;
 }
 
-.price-history {
+.price-history,
+.stock-history {
   display: grid;
   gap: 0.875rem;
   padding: clamp(0.875rem, 2.7vw, 1.625rem);
@@ -302,6 +303,89 @@ button {
   font-size: clamp(0.8125rem, 1.5vw, 1rem);
 }
 
+.stock-history h2 {
+  font-size: 1rem;
+  font-weight: 550;
+}
+
+.stock-table-scroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.stock-history table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stock-history th,
+.stock-history td {
+  padding: 0.625rem 0.75rem;
+  text-align: end;
+}
+
+.stock-history th:first-child {
+  text-align: start;
+}
+
+.stock-history thead th {
+  padding-block: 0.25rem 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stock-history tbody th {
+  font-weight: inherit;
+}
+
+.stock-history tbody tr:nth-child(odd) {
+  background: var(--glass-surface);
+}
+
+.stock-history tbody tr:hover {
+  background: var(--selected-surface);
+}
+
+.stock-history button {
+  padding: 0.25rem 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stock-history th[aria-sort] button,
+.stock-table-pagination button {
+  color: var(--accent);
+}
+
+.stock-table-footer,
+.stock-table-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.stock-table-footer {
+  justify-content: space-between;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.stock-table-pagination button {
+  min-width: 1.75rem;
+  font-size: 1rem;
+}
+
+.stock-table-pagination button[aria-disabled="true"] {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
 @media (max-width: 900px) {
   .chart-header {
     grid-template-columns: minmax(0, 1fr);
@@ -333,7 +417,8 @@ button {
 
 @media (pointer: coarse) {
   .chart-controls button,
-  .dashboard-button {
+  .dashboard-button,
+  .stock-table-pagination button {
     min-height: 44px;
   }
 }

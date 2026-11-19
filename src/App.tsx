@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { DataStatus } from "@/components/DataStatus";
 import { QuoteHeader } from "@/components/QuoteHeader";
 import { StockSummary } from "@/components/StockSummary";
+import { StockTable } from "@/components/StockTable";
 import { SymbolRail } from "@/components/SymbolRail";
 import { instruments, type InstrumentSymbol } from "@/data/instruments";
 import { useStockData } from "@/hooks/useStockData";
@@ -75,6 +76,7 @@ function App() {
         )}
         {latest && <StockSummary observation={latest} />}
       </section>
+      {history?.asOf && <StockTable key={`${symbol}-${interval}`} observations={history.data} />}
     </DashboardShell>
   );
 }
