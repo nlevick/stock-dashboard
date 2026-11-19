@@ -1,50 +1,48 @@
-import { useEffect, useState } from "react";
-import { fetchStockData } from "@/services/stockApi";
-import type { StockData } from "@/types/stock";
-import { ApiError, StockApiError } from "@/types/error";
+import { useEffect, useMemo, useState } from "react";
+import type { InstrumentSymbol } from "@/data/instruments";
+import { loadStockData, type StockDataResult } from "@/services/stockDataSource";
+import { type ApiError, StockApiError } from "@/types/error";
 
-export function useStockData(symbol: string) {
-  const [stockData, setStockData] = useState<StockData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ApiError | null>(null);
+type Request = { symbol: InstrumentSymbol; attempt: number };
+type Result = { request: Request } & (
+  | { data: StockDataResult; error: null }
+  | { data: null; error: ApiError }
+);
+
+export function useStockData(symbol: InstrumentSymbol) {
+  const [attempt, setAttempt] = useState(0);
+  const [result, setResult] = useState<Result | null>(null);
+  const request = useMemo(() => ({ symbol, attempt }), [symbol, attempt]);
+  const current = result?.request === request ? result : null;
 
   useEffect(() => {
     const controller = new AbortController();
-    let cancelled = false;
 
-    const loadData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchStockData(symbol, controller.signal);
-        if (!cancelled) {
-          setStockData(data);
-        }
-      } catch (err) {
-        if (err instanceof StockApiError) {
-          setError({ code: err.code, message: err.message });
-        } else if (err instanceof DOMException && err.name === "AbortError") {
-          // fetch was cancelled by AbortController so ignore
-        } else {
-          setError({
-            code: "NETWORK_ERROR",
-            message: "Network request failed",
-          });
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
+    // Strict Mode runs an effect setup and cleanup before the real setup in development.
+    queueMicrotask(() => {
+      if (controller.signal.aborted) return;
 
-    loadData();
+      loadStockData(request.symbol, controller.signal).then(
+        (data) => {
+          if (!controller.signal.aborted) setResult({ request, data, error: null });
+        },
+        (error: unknown) => {
+          if (controller.signal.aborted) return;
+          const details: ApiError = error instanceof StockApiError
+            ? { code: error.code, message: error.message }
+            : { code: "NETWORK_ERROR", message: "Network request failed" };
+          setResult({ request, data: null, error: details });
+        },
+      );
+    });
 
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [symbol]);
+    return () => controller.abort();
+  }, [request]);
 
-  return { loading, error, stockData };
+  return {
+    loading: current === null,
+    error: current?.error ?? null,
+    stockData: current?.data ?? null,
+    retry: () => setAttempt((previous) => previous + 1),
+  };
 }

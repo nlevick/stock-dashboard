@@ -1,5 +1,6 @@
 export type StockApiErrorCode =
   | "RATE_LIMITED"
+  | "ACCESS_RESTRICTED"
   | "INVALID_SYMBOL"
   | "NETWORK_ERROR"
   | "PARSE_ERROR"

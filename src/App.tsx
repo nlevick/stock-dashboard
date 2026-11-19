@@ -4,7 +4,7 @@ import "@/styles/theme.css";
 
 function App() {
   const { theme, toggleTheme } = useTheme();
-  const { loading, error, stockData } = useStockData("IBIT");
+  const { loading, error, stockData, retry } = useStockData("IBIT");
 
   {
     /* TODO: Breakout components */
@@ -38,17 +38,19 @@ function App() {
 
       {loading && <p>Loading stock data...</p>}
       {error && (
-        <p style={{ color: "var(--chart-down)" }}>
+        <div role="alert" style={{ color: "var(--chart-down)" }}>
           Error: {error.message}
-          {/* {error.code === "RATE_LIMITED" && ( */}
-          {/*   <button onClick={retry}>Retry</button> */}
-          {/* )} */}
+          {" "}
+          <button type="button" onClick={retry}>Retry</button>
           {error.code === "INVALID_SYMBOL" && (
             <span> — check the symbol and try again</span>
           )}
-        </p>
+        </div>
       )}
-      {stockData && (
+      {stockData?.data.length === 0 && (
+        <p role="status">No daily observations returned. <button type="button" onClick={retry}>Retry</button></p>
+      )}
+      {stockData && stockData.data.length > 0 && (
         <div>
           <h2>{stockData.symbol} Stock Data</h2>
           <p style={{ color: "var(--text-secondary)" }}>
@@ -56,6 +58,7 @@ function App() {
             {stockData.data[0]?.date} to{" "}
             {stockData.data[stockData.data.length - 1]?.date}
           </p>
+          <p>Source: {stockData.source}</p>
           {/* TODO: Chart goes here */}
           <div
             style={{

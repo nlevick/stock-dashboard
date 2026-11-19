@@ -1,5 +1,5 @@
 import { getCache, setCache } from "@/services/cache";
-import { parseStockData } from "@/services/parseStockData";
+import { isStockDataPoint, parseStockData } from "@/services/parseStockData";
 import { StockApiError } from "@/types/error";
 import type { StockData } from "@/types/stock";
 
@@ -11,14 +11,25 @@ export const fetchStockData = async (
   signal?: AbortSignal,
 ): Promise<StockData> => {
   const cacheKey = `${symbol}-${new Date().toISOString().slice(0, 10)}`;
-  const cached = getCache<StockData>(cacheKey);
+  const cached = getCache(cacheKey, (value): value is StockData =>
+    isRecord(value) &&
+    value.symbol === symbol &&
+    Array.isArray(value.data) &&
+    value.data.length > 0 &&
+    value.data.every(isStockDataPoint) &&
+    value.data.every((point, index, points) => index === 0 || points[index - 1].date < point.date),
+  );
   if (cached) return cached;
 
-  const url = `${BASE_URL}?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`;
+  const params = new URLSearchParams({
+    function: "TIME_SERIES_DAILY",
+    symbol,
+    apikey: API_KEY,
+  });
 
   let response: Response;
   try {
-    response = await fetch(url, { signal });
+    response = await fetch(`${BASE_URL}?${params}`, { signal });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
     throw new StockApiError("NETWORK_ERROR", "Network request failed");
@@ -46,19 +57,23 @@ export const fetchStockData = async (
     throw new StockApiError("INVALID_SYMBOL", `Unknown symbol: ${symbol}`);
   }
 
-  if (
-    typeof json["Note"] === "string" ||
-    typeof json["Information"] === "string"
-  ) {
+  const providerMessage = json["Information"] ?? json["Note"];
+  if (typeof providerMessage === "string") {
+    if (/per second|burst|spread out/i.test(providerMessage)) {
+      throw new StockApiError("RATE_LIMITED", "Requests are too close together. Wait a moment and retry.");
+    }
+    if (/per day|daily.{0,20}(?:limit|quota)|(?:rate|frequency|quota) limit/i.test(providerMessage)) {
+      throw new StockApiError("RATE_LIMITED", "Daily API limit reached. Retry after the quota resets or use your own key.");
+    }
     throw new StockApiError(
-      "RATE_LIMITED",
-      "API rate limit reached. Please wait or use your own API key.",
+      "ACCESS_RESTRICTED",
+      "Alpha Vantage did not return data for this key. Check your API key and daily-data access.",
     );
   }
 
   const data = parseStockData(json["Time Series (Daily)"]);
   const result: StockData = { symbol, data };
-  setCache(cacheKey, result);
+  if (data.length && !signal?.aborted) setCache(cacheKey, result);
   return result;
 };
 
