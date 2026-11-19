@@ -95,11 +95,14 @@ it("clears the old quote, retries the current symbol, and recovers from burst th
 });
 
 it.each([
-  ["Our standard API rate limit is 25 requests per day.", "RATE_LIMITED"],
-  ["This is a premium endpoint. Please subscribe.", "ACCESS_RESTRICTED"],
-])("classifies provider feedback for %s", async (Information, code) => {
+  ["daily", "Our standard API rate limit is 25 requests per day.", "RATE_LIMITED", "Daily API limit reached"],
+  ["daily", "This is a premium endpoint. Please subscribe.", "ACCESS_RESTRICTED", "access to daily data"],
+  ["weekly", "This is a premium endpoint. Please subscribe.", "ACCESS_RESTRICTED", "access to weekly data"],
+] as const)("classifies %s provider feedback for %s", async (interval, Information, code, message) => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ Information })));
-  const { result } = renderHook(() => useStockData("SPY"));
+  const { result } = renderHook(() => useStockData("SPY", interval));
 
-  await waitFor(() => expect(result.current.error?.code).toBe(code), requestWait);
+  await waitFor(() => expect(result.current.error).toMatchObject({
+    code, message: expect.stringContaining(message),
+  }), requestWait);
 });

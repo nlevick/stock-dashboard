@@ -86,7 +86,7 @@ export const fetchStockData = async (
     }
     throw new StockApiError(
       "ACCESS_RESTRICTED",
-      "Alpha Vantage did not return data for this key. Check your API key and daily-data access.",
+      `Alpha Vantage did not return data for this key. Check your API key and access to ${interval} data.`,
     );
   }
 
