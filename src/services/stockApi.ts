@@ -1,16 +1,25 @@
 import { getCache, setCache } from "@/services/cache";
 import { isStockDataPoint, parseStockData } from "@/services/parseStockData";
 import { StockApiError } from "@/types/error";
-import type { StockData } from "@/types/stock";
+import type { StockData, StockInterval } from "@/types/stock";
 
 const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_KEY ?? "demo";
 const BASE_URL = "https://www.alphavantage.co/query";
+const OBSERVATION_LIMIT = 100;
+const REQUEST_SPACING_MS = 1_050;
+const series = {
+  daily: { endpoint: "TIME_SERIES_DAILY", responseKey: "Time Series (Daily)" },
+  weekly: { endpoint: "TIME_SERIES_WEEKLY", responseKey: "Weekly Time Series" },
+};
+let nextRequestAt = 0;
 
 export const fetchStockData = async (
   symbol: string,
+  interval: StockInterval = "daily",
   signal?: AbortSignal,
 ): Promise<StockData> => {
-  const cacheKey = `${symbol}-${new Date().toISOString().slice(0, 10)}`;
+  const date = new Date().toISOString().slice(0, 10);
+  const cacheKey = interval === "daily" ? `${symbol}-${date}` : `${symbol}-${interval}-${date}`;
   const cached = getCache(cacheKey, (value): value is StockData =>
     isRecord(value) &&
     value.symbol === symbol &&
@@ -19,16 +28,26 @@ export const fetchStockData = async (
     value.data.every(isStockDataPoint) &&
     value.data.every((point, index, points) => index === 0 || points[index - 1].date < point.date),
   );
-  if (cached) return cached;
+  if (cached) return { ...cached, data: cached.data.slice(-OBSERVATION_LIMIT) };
 
+  const { endpoint, responseKey } = series[interval];
   const params = new URLSearchParams({
-    function: "TIME_SERIES_DAILY",
+    function: endpoint,
     symbol,
     apikey: API_KEY,
   });
+  if (interval === "daily") params.set("outputsize", "compact");
 
   let response: Response;
   try {
+    // A cold ticker can need both its daily quote and its weekly history.
+    let wait = nextRequestAt - performance.now();
+    while (wait > 0 && !signal?.aborted) {
+      await new Promise((resolve) => setTimeout(resolve, wait));
+      wait = nextRequestAt - performance.now();
+    }
+    signal?.throwIfAborted();
+    nextRequestAt = performance.now() + REQUEST_SPACING_MS;
     response = await fetch(`${BASE_URL}?${params}`, { signal });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
@@ -71,7 +90,7 @@ export const fetchStockData = async (
     );
   }
 
-  const data = parseStockData(json["Time Series (Daily)"]);
+  const data = parseStockData(json[responseKey]).slice(-OBSERVATION_LIMIT);
   const result: StockData = { symbol, data };
   if (data.length && !signal?.aborted) setCache(cacheKey, result);
   return result;

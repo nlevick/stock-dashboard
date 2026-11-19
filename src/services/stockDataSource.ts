@@ -1,6 +1,6 @@
 import { fetchStockData } from "@/services/stockApi";
 import type { InstrumentSymbol } from "@/data/instruments";
-import type { StockData } from "@/types/stock";
+import type { StockData, StockInterval } from "@/types/stock";
 
 export interface StockDataResult extends StockData {
   source: string;
@@ -9,9 +9,10 @@ export interface StockDataResult extends StockData {
 
 export async function loadStockData(
   symbol: InstrumentSymbol,
+  interval: StockInterval = "daily",
   signal?: AbortSignal,
 ): Promise<StockDataResult> {
-  const result = await fetchStockData(symbol, signal);
+  const result = await fetchStockData(symbol, interval, signal);
   return {
     ...result,
     source: "Alpha Vantage",

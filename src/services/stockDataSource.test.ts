@@ -17,7 +17,7 @@ it("requests daily data for each curated ETF and reports observation provenance"
   vi.stubGlobal("fetch", fetch);
   vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => undefined });
 
-  expect(instruments.map(({ symbol }) => symbol)).toEqual(["SPY", "IBIT", "GDX"]);
+  expect(instruments.map(({ symbol }) => symbol)).toEqual(["SPY", "IBIT"]);
   for (const { symbol } of instruments) {
     await expect(loadStockData(symbol)).resolves.toEqual({
       symbol,
@@ -33,6 +33,5 @@ it("requests daily data for each curated ETF and reports observation provenance"
   })).toEqual([
     ["TIME_SERIES_DAILY", "SPY"],
     ["TIME_SERIES_DAILY", "IBIT"],
-    ["TIME_SERIES_DAILY", "GDX"],
   ]);
 });

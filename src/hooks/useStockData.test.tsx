@@ -6,6 +6,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { InstrumentSymbol } from "@/data/instruments";
 import { useStockData } from "@/hooks/useStockData";
 
+const requestWait = { timeout: 2_500 };
+
 function dailyResponse(date: string) {
   return Response.json({
     "Time Series (Daily)": {
@@ -44,8 +46,8 @@ it.each(["resolve", "reject"] as const)(
       ({ symbol }: { symbol: InstrumentSymbol }) => useStockData(symbol),
       { initialProps: { symbol: "SPY" } },
     );
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
-    rerender({ symbol: "GDX" });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1), requestWait);
+    rerender({ symbol: "IBIT" });
     expect(fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
     expect(result.current).toMatchObject({ loading: true, stockData: null, error: null });
 
@@ -54,12 +56,13 @@ it.each(["resolve", "reject"] as const)(
       expect(result.current).toMatchObject({ loading: true, stockData: null, error: null });
     }
     await act(async () => newer.resolve(dailyResponse("2025-03-12")));
+    await waitFor(() => expect(result.current).toMatchObject({
+      loading: false, error: null, stockData: { symbol: "IBIT", asOf: "2025-03-12" },
+    }), requestWait);
     if (outcome === "resolve") {
       await act(async () => older.resolve(dailyResponse("2025-03-11")));
+      expect(result.current.stockData).toMatchObject({ symbol: "IBIT", asOf: "2025-03-12" });
     }
-    expect(result.current).toMatchObject({
-      loading: false, error: null, stockData: { symbol: "GDX", asOf: "2025-03-12" },
-    });
   },
 );
 
@@ -74,19 +77,19 @@ it("clears the old quote, retries the current symbol, and recovers from burst th
     ({ symbol }: { symbol: InstrumentSymbol }) => useStockData(symbol),
     { initialProps: { symbol: "SPY" }, wrapper: StrictMode },
   );
-  await waitFor(() => expect(result.current.stockData?.symbol).toBe("SPY"));
+  await waitFor(() => expect(result.current.stockData?.symbol).toBe("SPY"), requestWait);
 
   rerender({ symbol: "IBIT" });
   expect(result.current).toMatchObject({ loading: true, stockData: null, error: null });
   await waitFor(() => expect(result.current.error).toMatchObject({
     code: "RATE_LIMITED", message: expect.stringContaining("Wait a moment"),
-  }));
+  }), requestWait);
 
   act(() => result.current.retry());
   expect(result.current).toMatchObject({ loading: true, stockData: null, error: null });
   await waitFor(() => expect(result.current).toMatchObject({
     loading: false, error: null, stockData: { symbol: "IBIT", asOf: "2025-03-12" },
-  }));
+  }), requestWait);
   expect(fetch.mock.calls.map(([url]) => new URL(String(url)).searchParams.get("symbol")))
     .toEqual(["SPY", "IBIT", "IBIT"]);
 });
@@ -98,5 +101,5 @@ it.each([
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ Information })));
   const { result } = renderHook(() => useStockData("SPY"));
 
-  await waitFor(() => expect(result.current.error?.code).toBe(code));
+  await waitFor(() => expect(result.current.error?.code).toBe(code), requestWait);
 });

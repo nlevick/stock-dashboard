@@ -1,20 +1,29 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
-import type { ChartView } from "@/components/RangeControls";
+import type { ChartView } from "@/components/ChartControls";
 import { buildChartModel, CHART_HEIGHT } from "@/components/chartModel";
-import type { StockDataPoint } from "@/types/stock";
+import type { StockDataPoint, StockInterval } from "@/types/stock";
 import "./CandlestickChart.css";
 
 interface CandlestickChartProps {
   data: readonly StockDataPoint[];
+  interval: StockInterval;
   view: ChartView;
 }
 
-const axisDate = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+const axisDates = {
+  daily: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+  weekly: new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }),
+};
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const shares = new Intl.NumberFormat("en-US");
+const chartLabels: Record<ChartView, string> = {
+  candles: "Candlestick price and volume chart",
+  bars: "OHLC price and volume bar chart",
+  line: "Closing price and volume line chart",
+};
 
-export function CandlestickChart({ data, view }: CandlestickChartProps) {
+export function CandlestickChart({ data, interval, view }: CandlestickChartProps) {
   const chartRef = useRef<SVGSVGElement>(null);
   const instructions = useId();
   const [width, setWidth] = useState(640);
@@ -26,6 +35,7 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
   const activeIndex = inspection ? data.findIndex(({ date }) => date === inspection.date) : -1;
   const active = data[activeIndex];
   const current = active ?? latest;
+  const priceMarkClass = view === "bars" ? "chart-bar" : "chart-candle";
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -78,7 +88,7 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
   return (
     <>
       <p id={instructions} className="chart-instructions">
-        Use the arrow keys to inspect daily prices. Home and End jump to the first and last day.
+        Use the arrow keys to inspect {interval} prices. Home and End jump to the first and last observation.
       </p>
       <div
         className="chart-readout"
@@ -99,7 +109,7 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
         ref={chartRef}
         className="stock-chart"
         role="img"
-        aria-label={view === "candles" ? "Candlestick price and volume chart" : "Closing price and volume line chart"}
+        aria-label={chartLabels[view]}
         aria-describedby={instructions}
         viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
         height={CHART_HEIGHT}
@@ -116,7 +126,7 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
             <text x={plot.right + 7} y={price(tick)} dominantBaseline="middle">{usd.format(tick)}</text>
           </g>
         ))}
-        <g aria-label="Daily volume">
+        <g aria-label={interval === "daily" ? "Daily volume" : "Weekly volume"}>
           {data.map(({ date, volume: shareVolume }) => (
             <rect
               key={date}
@@ -129,17 +139,30 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
           ))}
           <text x={plot.right + 7} y={plot.bottom - 3}>Volume</text>
         </g>
-        {view === "candles" ? data.map(({ date, open, close, high, low }) => (
-          <g key={date} className={close < open ? "chart-candle chart-candle-down" : "chart-candle"}>
-            <line x1={center(date)} x2={center(date)} y1={price(high)} y2={price(low)} />
-            <rect
-              x={center(date) - markWidth / 2}
-              width={markWidth}
-              y={Math.min(price(open), price(close))}
-              height={Math.max(1, Math.abs(price(open) - price(close)))}
-            />
-          </g>
-        )) : data.length === 1 ? (
+        {view !== "line" ? data.map(({ date, open, close, high, low }) => {
+          const x = center(date);
+          const left = x - markWidth / 2;
+          const openY = price(open);
+          const closeY = price(close);
+          return (
+            <g key={date} className={close < open ? `${priceMarkClass} ${priceMarkClass}-down` : priceMarkClass}>
+              <line x1={x} x2={x} y1={price(high)} y2={price(low)} />
+              {view === "bars" ? (
+                <>
+                  <line x1={left} x2={x} y1={openY} y2={openY} />
+                  <line x1={x} x2={x + markWidth / 2} y1={closeY} y2={closeY} />
+                </>
+              ) : (
+                <rect
+                  x={left}
+                  width={markWidth}
+                  y={Math.min(openY, closeY)}
+                  height={Math.max(1, Math.abs(openY - closeY))}
+                />
+              )}
+            </g>
+          );
+        }) : data.length === 1 ? (
           <circle className="chart-close-point" cx={center(latest.date)} cy={price(latest.close)} r={3} />
         ) : (
           <path className="chart-close-line" d={closingLine ?? undefined} />
@@ -151,7 +174,7 @@ export function CandlestickChart({ data, view }: CandlestickChartProps) {
             y={CHART_HEIGHT - 7}
             textAnchor={dateTicks.length === 1 ? "middle" : index === 0 ? "start" : index === dateTicks.length - 1 ? "end" : "middle"}
           >
-            {axisDate.format(new Date(date))}
+            {axisDates[interval].format(new Date(date))}
           </text>
         ))}
         {active && (

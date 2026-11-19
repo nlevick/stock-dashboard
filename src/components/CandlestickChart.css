@@ -78,12 +78,14 @@
   opacity: 0.45;
 }
 
-.chart-candle {
+.chart-candle,
+.chart-bar {
   stroke: var(--chart-up);
   fill: var(--bg-secondary);
 }
 
-.chart-candle-down {
+.chart-candle-down,
+.chart-bar-down {
   stroke: var(--chart-down);
   fill: var(--chart-down);
 }

@@ -1,7 +1,7 @@
 import { StockApiError } from "@/types/error";
 import type { StockDataPoint } from "@/types/stock";
 
-const DAILY_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DECIMAL = /^(?:\d+(?:\.\d+)?|\.\d+)$/;
 
 export function parseStockData(timeSeries: unknown): StockDataPoint[] {
@@ -37,7 +37,7 @@ export function isStockDataPoint(value: unknown): value is StockDataPoint {
 
   const { date, open, high, low, close, volume } = value;
   return (
-    isDailyDate(date) &&
+    isIsoDate(date) &&
     isFiniteNumber(open) &&
     isFiniteNumber(high) &&
     isFiniteNumber(low) &&
@@ -51,8 +51,8 @@ export function isStockDataPoint(value: unknown): value is StockDataPoint {
   );
 }
 
-function isDailyDate(value: unknown): value is string {
-  if (typeof value !== "string" || !DAILY_DATE.test(value)) return false;
+function isIsoDate(value: unknown): value is string {
+  if (typeof value !== "string" || !ISO_DATE.test(value)) return false;
   const date = new Date(value);
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
