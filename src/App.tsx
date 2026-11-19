@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { CandlestickChart } from "@/components/CandlestickChart";
 import { ChartControls, type ChartView } from "@/components/ChartControls";
+import { DashboardShell } from "@/components/DashboardShell";
+import { DataStatus } from "@/components/DataStatus";
+import { QuoteHeader } from "@/components/QuoteHeader";
+import { StockSummary } from "@/components/StockSummary";
+import { SymbolRail } from "@/components/SymbolRail";
 import { instruments, type InstrumentSymbol } from "@/data/instruments";
 import { useStockData } from "@/hooks/useStockData";
 import { THEME, useTheme } from "@/hooks/useTheme";
@@ -14,83 +19,63 @@ function App() {
   const [view, setView] = useState<ChartView>("candles");
   const daily = useStockData(symbol);
   const weekly = useStockData(interval === "weekly" ? symbol : null, "weekly");
-  const { loading, error, stockData, retry } = interval === "daily" ? daily : weekly;
+  const active = interval === "daily" ? daily : weekly;
   const quote = daily.stockData;
   const latest = quote?.data[quote.data.length - 1];
+  const history = active.stockData;
 
   return (
-    <div style={{ padding: "clamp(0.75rem, 4vw, 2rem)" }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "0.75rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <h1>Stock Dashboard</h1>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: "var(--accent)",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "0.9rem",
-          }}
-        >
-          {theme === THEME.DARK ? "🌙" : "☀️"} Toggle Theme
+    <DashboardShell
+      rail={<SymbolRail symbol={symbol} onSelect={setSymbol} />}
+      themeControl={(
+        <button className="dashboard-button" type="button" onClick={toggleTheme}>
+          {theme === THEME.DARK ? "Light theme" : "Dark theme"}
         </button>
-      </header>
-
-      <div className="chart-controls" role="group" aria-label="Ticker">
-        {instruments.map((instrument) => (
-          <button key={instrument.symbol} type="button" aria-pressed={symbol === instrument.symbol} onClick={() => setSymbol(instrument.symbol)}>
-            {instrument.symbol}
-          </button>
-        ))}
-      </div>
-
-      <section className="price-history" aria-label="Price history">
-        <h2>{symbol}</h2>
-        {quote?.asOf && latest && (
-          <div role="group" aria-label="Latest close">
-            <p>${latest.close.toFixed(2)}</p>
-            <p>At close <time dateTime={quote.asOf}>{quote.asOf}</time></p>
-          </div>
+      )}
+    >
+      <section className="price-history glass-panel" aria-label="Price history">
+        <div className="chart-header">
+          <h2>{symbol}</h2>
+          {quote && latest && (
+            <QuoteHeader latest={latest} previous={quote.data[quote.data.length - 2]} source={quote.source} />
+          )}
+          <ChartControls interval={interval} view={view} onIntervalChange={setInterval} onViewChange={setView} />
+        </div>
+        {interval === "weekly" && (
+          <DataStatus
+            loading={daily.loading}
+            error={daily.error}
+            empty={quote?.data.length === 0}
+            loadingMessage="Loading daily close…"
+            emptyMessage="Daily close unavailable."
+            errorLabel="Daily close unavailable"
+            retry={daily.retry}
+            retryLabel="Retry daily close"
+          />
         )}
-        {interval === "weekly" && stockData?.asOf && !quote?.asOf && (
-          daily.loading ? <p role="status">Loading daily close...</p> : (
-            <p>Daily close unavailable. <button type="button" onClick={daily.retry}>Retry daily close</button></p>
-          )
+        {history?.asOf && (!latest || history.source !== quote?.source) && (
+          <p className="data-source">Chart source: {history.source}</p>
         )}
-        {stockData?.asOf && <p>Source: {stockData.source}</p>}
-        <ChartControls interval={interval} view={view} onIntervalChange={setInterval} onViewChange={setView} />
-        {loading && <p role="status">Loading {interval} prices...</p>}
-        {error && (
-          <div role="alert" style={{ color: "var(--chart-down)" }}>
-            {error.message} <button type="button" onClick={retry}>Retry</button>
-          </div>
-        )}
-        {stockData?.data.length === 0 && (
-          <p role="status">
-            No {interval} observations returned. <button type="button" onClick={retry}>Retry</button>
-          </p>
-        )}
-        {stockData?.asOf && (
+        <DataStatus
+          loading={active.loading}
+          error={active.error}
+          empty={history?.data.length === 0}
+          loadingMessage={`Loading ${interval} prices…`}
+          emptyMessage={`No ${interval} observations returned.`}
+          errorLabel={interval === "weekly" ? "Weekly history unavailable" : "Daily history unavailable"}
+          retry={active.retry}
+        />
+        {history?.asOf && (
           <CandlestickChart
             key={`${symbol}-${interval}`}
-            data={stockData.data}
+            data={history.data}
             interval={interval}
             view={view}
           />
         )}
+        {latest && <StockSummary observation={latest} />}
       </section>
-    </div>
+    </DashboardShell>
   );
 }
 

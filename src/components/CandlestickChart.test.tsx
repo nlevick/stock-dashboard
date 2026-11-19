@@ -43,7 +43,7 @@ it.each([
   const quote = screen.getByRole("group", { name: "Latest close" });
   const assertLatestQuote = () => {
     expect(within(quote).getByText("$15.00")).toBeTruthy();
-    expect(within(quote).getByText("2025-03-12")).toBeTruthy();
+    expect(within(quote).getByText("Mar 12, 2025")).toBeTruthy();
   };
 
   expect(chart.tabIndex).toBe(0);
@@ -94,7 +94,10 @@ it("shows the latest 100 observations and reuses each ticker and interval indepe
 
   render(<App />);
   const ticker = screen.getByRole("group", { name: "Ticker" });
-  expect(within(ticker).getAllByRole("button").map((button) => button.textContent)).toEqual(["SPY", "IBIT"]);
+  expect(within(ticker).getAllByRole("button")).toEqual([
+    within(ticker).getByRole("button", { name: "SPY" }),
+    within(ticker).getByRole("button", { name: "IBIT" }),
+  ]);
   expect(within(ticker).getByRole("button", { name: "SPY", pressed: true })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Daily", pressed: true })).toBeTruthy();
   const candleChart = await screen.findByRole("img", { name: candleChartLabel }, requestWait);
@@ -114,7 +117,7 @@ it("shows the latest 100 observations and reuses each ticker and interval indepe
   const weekly = await screen.findByRole("img", { name: barLabel }, requestWait);
   expect(volumeMarks(weekly, "Weekly")).toHaveLength(100);
   expect(within(screen.getByRole("group", { name: "Inspected observation" })).getByText("2025-03-07")).toBeTruthy();
-  expect(within(screen.getByRole("group", { name: "Latest close" })).getByText("2025-03-12")).toBeTruthy();
+  expect(within(screen.getByRole("group", { name: "Latest close" })).getByText("Mar 12, 2025")).toBeTruthy();
 
   fireEvent.click(within(ticker).getByRole("button", { name: "IBIT" }));
   await screen.findByRole("img", { name: barLabel }, requestWait);

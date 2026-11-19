@@ -48,6 +48,8 @@
 }
 
 .chart-readout {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem 0.85rem;
   font-variant-numeric: tabular-nums;
 }
