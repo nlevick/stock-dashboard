@@ -1,6 +1,7 @@
 import { getCache, setCache } from "@/services/cache";
+import { parseStockData } from "@/services/parseStockData";
 import { StockApiError } from "@/types/error";
-import type { StockData, StockDataPoint } from "@/types/stock";
+import type { StockData } from "@/types/stock";
 
 const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_KEY ?? "demo";
 const BASE_URL = "https://www.alphavantage.co/query";
@@ -55,33 +56,7 @@ export const fetchStockData = async (
     );
   }
 
-  const timeSeries = json["Time Series (Daily)"];
-  if (!isRecord(timeSeries)) {
-    throw new StockApiError(
-      "PARSE_ERROR",
-      "No time series data returned from API",
-    );
-  }
-
-  const data: StockDataPoint[] = Object.entries(timeSeries)
-    .map(([date, values]) => {
-      if (!isRecord(values)) {
-        throw new StockApiError(
-          "PARSE_ERROR",
-          `Malformed data for date ${date}`,
-        );
-      }
-      return {
-        date,
-        open: parseFloat(values["1. open"] as string),
-        high: parseFloat(values["2. high"] as string),
-        low: parseFloat(values["3. low"] as string),
-        close: parseFloat(values["4. close"] as string),
-        volume: parseInt(values["5. volume"] as string, 10),
-      };
-    })
-    .reverse();
-
+  const data = parseStockData(json["Time Series (Daily)"]);
   const result: StockData = { symbol, data };
   setCache(cacheKey, result);
   return result;
