@@ -3,15 +3,17 @@ import type { StockDataPoint } from "@/types/stock";
 
 export const CHART_HEIGHT = 284;
 
-export function buildChartModel(data: readonly StockDataPoint[], width: number) {
+export function buildChartModel(data: readonly StockDataPoint[], width: number, height = CHART_HEIGHT) {
   const dates = data.map(({ date }) => date);
+  const bottom = height - 24;
+  const volumeTop = bottom - Math.min(36, height * 0.12);
   const plot = {
     left: 6,
-    right: width - 65,
+    right: width - 72,
     top: 12,
-    priceBottom: 205,
-    volumeTop: 220,
-    bottom: 257,
+    priceBottom: volumeTop - 12,
+    volumeTop,
+    bottom,
   };
 
   const x = scaleBand(dates, [plot.left, plot.right]);

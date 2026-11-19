@@ -26,9 +26,9 @@ const chartLabels: Record<ChartView, string> = {
 export function CandlestickChart({ data, interval, view }: CandlestickChartProps) {
   const chartRef = useRef<SVGSVGElement>(null);
   const instructions = useId();
-  const [width, setWidth] = useState(640);
+  const [{ width, height }, setSize] = useState({ width: 640, height: CHART_HEIGHT });
   const [inspection, setInspection] = useState<{ date: string; keyboard: boolean } | null>(null);
-  const model = useMemo(() => buildChartModel(data, width), [data, width]);
+  const model = useMemo(() => buildChartModel(data, width, height), [data, width, height]);
   const { plot, center, markWidth, price, volume, dateTicks, closingLine } = model;
   const hasData = data.length > 0;
   const latest = data[data.length - 1];
@@ -41,12 +41,16 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
     const chart = chartRef.current;
     if (!chart || typeof ResizeObserver === "undefined") return;
 
-    function updateWidth(measured: number) {
-      if (measured > 0) setWidth(Math.max(160, Math.round(measured)));
+    function measureChart() {
+      const bounds = chartRef.current?.getBoundingClientRect();
+      if (!bounds?.width || !bounds.height) return;
+      const width = Math.max(160, Math.round(bounds.width));
+      const height = Math.max(120, Math.round(bounds.height));
+      setSize((size) => size.width === width && size.height === height ? size : { width, height });
     }
 
-    updateWidth(chart.getBoundingClientRect().width);
-    const observer = new ResizeObserver(([entry]) => updateWidth(entry.contentRect.width));
+    measureChart();
+    const observer = new ResizeObserver(measureChart);
     observer.observe(chart);
     return () => observer.disconnect();
   }, [hasData]);
@@ -87,20 +91,15 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
 
   return (
     <>
-      <p id={instructions} className="chart-instructions">
-        Use the arrow keys to inspect {interval} prices. Home and End jump to the first and last observation.
-      </p>
-      <div
-        className="chart-readout"
-        role="group"
-        aria-label="Inspected observation"
-      >
-        <time dateTime={current.date}>{current.date}</time>
-        {fields.map(([label, value]) => (
-          <span key={label}>{label} <strong>{value}</strong></span>
-        ))}
+      <div className="chart-observation" role="group" aria-label="Inspected observation">
+        <dl className="chart-readout">
+          <div><dt>Date</dt><dd><time dateTime={current.date}>{current.date}</time></dd></div>
+          {fields.map(([label, value]) => (
+            <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+          ))}
+        </dl>
       </div>
-      <p className="chart-announcement" role="status" aria-atomic="true">
+      <p className="visually-hidden" role="status" aria-atomic="true">
         {inspection?.keyboard && active && (
           `${current.date}. ${fields.map(([label, value]) => `${label} ${value}`).join(", ")}.`
         )}
@@ -111,8 +110,8 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
         role="img"
         aria-label={chartLabels[view]}
         aria-describedby={instructions}
-        viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
-        height={CHART_HEIGHT}
+        viewBox={`0 0 ${width} ${height}`}
+        height={height}
         tabIndex={0}
         onKeyDown={inspectKeyboard}
         onPointerMove={inspectPointer}
@@ -120,24 +119,24 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
           if (!inspection?.keyboard) setInspection(null);
         }}
       >
-        {price.ticks(5).map((tick) => (
+        {price.ticks(height < 175 ? 3 : 5).map((tick) => (
           <g key={tick}>
             <line className="chart-grid" x1={plot.left} x2={plot.right} y1={price(tick)} y2={price(tick)} />
             <text x={plot.right + 7} y={price(tick)} dominantBaseline="middle">{usd.format(tick)}</text>
           </g>
         ))}
         <g aria-label={interval === "daily" ? "Daily volume" : "Weekly volume"}>
-          {data.map(({ date, volume: shareVolume }) => (
+          {data.map(({ date, open, close, volume: shareVolume }) => (
             <rect
               key={date}
               className="chart-volume"
+              data-direction={close < open ? "down" : "up"}
               x={center(date) - markWidth / 2}
               width={markWidth}
               y={volume(shareVolume)}
               height={plot.bottom - volume(shareVolume)}
             />
           ))}
-          <text x={plot.right + 7} y={plot.bottom - 3}>Volume</text>
         </g>
         {view !== "line" ? data.map(({ date, open, close, high, low }) => {
           const x = center(date);
@@ -171,7 +170,7 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
           <text
             key={date}
             x={center(date)}
-            y={CHART_HEIGHT - 7}
+            y={height - 5}
             textAnchor={dateTicks.length === 1 ? "middle" : index === 0 ? "start" : index === dateTicks.length - 1 ? "end" : "middle"}
           >
             {axisDates[interval].format(new Date(date))}
@@ -184,6 +183,9 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
           </g>
         )}
       </svg>
+      <p id={instructions} className="chart-instructions">
+        Use the arrow keys to inspect {interval} prices. Home and End jump to the first and last observation.
+      </p>
     </>
   );
 }

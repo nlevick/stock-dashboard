@@ -19,7 +19,7 @@ export function SymbolRail({ symbol, onSelect }: SymbolRailProps) {
           onClick={() => onSelect(instrument.symbol)}
         >
           <strong>{instrument.symbol}</strong>
-          <span className="symbol-name" id={`instrument-${instrument.symbol}`}>{instrument.name}</span>
+          <span className="visually-hidden" id={`instrument-${instrument.symbol}`}>{instrument.name}</span>
         </button>
       ))}
     </div>

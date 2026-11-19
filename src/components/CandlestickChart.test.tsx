@@ -54,7 +54,7 @@ it.each([
   for (const [label, value] of Object.entries({
     Open: "$12.00", High: "$15.00", Low: "$11.00", Close: "$14.00", Volume: "8,000",
   })) {
-    expect(within(readout).getByText(label).textContent).toBe(`${label} ${value}`);
+    expect(within(readout).getByText(label, { selector: "dt" }).nextElementSibling?.textContent).toBe(value);
   }
   assertLatestQuote();
 
