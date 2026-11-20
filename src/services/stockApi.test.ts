@@ -1,10 +1,10 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { instruments } from "@/data/instruments";
-import { loadStockData } from "@/services/stockDataSource";
+import { fetchStockData } from "@/services/stockApi";
 
 afterEach(() => vi.unstubAllGlobals());
 
-it("requests daily data for each curated ETF and reports observation provenance", async () => {
+it("requests and parses daily data for each curated ETF", async () => {
   const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async () =>
     Response.json({
       "Time Series (Daily)": {
@@ -19,10 +19,8 @@ it("requests daily data for each curated ETF and reports observation provenance"
 
   expect(instruments.map(({ symbol }) => symbol)).toEqual(["SPY", "IBIT"]);
   for (const { symbol } of instruments) {
-    await expect(loadStockData(symbol)).resolves.toEqual({
+    await expect(fetchStockData(symbol)).resolves.toEqual({
       symbol,
-      source: "Alpha Vantage",
-      asOf: "2025-03-12",
       data: [{ date: "2025-03-12", open: 12, high: 15, low: 11, close: 14, volume: 20 }],
     });
   }

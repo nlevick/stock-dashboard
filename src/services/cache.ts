@@ -1,4 +1,8 @@
-import type { CacheEntry } from "@/types/cache";
+interface CacheEntry<T> {
+  data: T;
+  cachedAt: string;
+  expiresAt: string;
+}
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 

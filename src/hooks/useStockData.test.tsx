@@ -57,11 +57,11 @@ it.each(["resolve", "reject"] as const)(
     }
     await act(async () => newer.resolve(dailyResponse("2025-03-12")));
     await waitFor(() => expect(result.current).toMatchObject({
-      loading: false, error: null, stockData: { symbol: "IBIT", asOf: "2025-03-12" },
+      loading: false, error: null, stockData: { symbol: "IBIT", data: [{ date: "2025-03-12" }] },
     }), requestWait);
     if (outcome === "resolve") {
       await act(async () => older.resolve(dailyResponse("2025-03-11")));
-      expect(result.current.stockData).toMatchObject({ symbol: "IBIT", asOf: "2025-03-12" });
+      expect(result.current.stockData).toMatchObject({ symbol: "IBIT", data: [{ date: "2025-03-12" }] });
     }
   },
 );
@@ -88,7 +88,7 @@ it("clears the old quote, retries the current symbol, and recovers from burst th
   act(() => result.current.retry());
   expect(result.current).toMatchObject({ loading: true, stockData: null, error: null });
   await waitFor(() => expect(result.current).toMatchObject({
-    loading: false, error: null, stockData: { symbol: "IBIT", asOf: "2025-03-12" },
+    loading: false, error: null, stockData: { symbol: "IBIT", data: [{ date: "2025-03-12" }] },
   }), requestWait);
   expect(fetch.mock.calls.map(([url]) => new URL(String(url)).searchParams.get("symbol")))
     .toEqual(["SPY", "IBIT", "IBIT"]);

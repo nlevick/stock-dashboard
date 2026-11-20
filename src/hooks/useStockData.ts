@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { InstrumentSymbol } from "@/data/instruments";
-import { loadStockData, type StockDataResult } from "@/services/stockDataSource";
+import { fetchStockData } from "@/services/stockApi";
 import { type ApiError, StockApiError } from "@/types/error";
-import type { StockInterval } from "@/types/stock";
+import type { StockData, StockInterval } from "@/types/stock";
 
 type Request = { symbol: InstrumentSymbol; interval: StockInterval; attempt: number };
 type Result = { request: Request } & (
-  | { data: StockDataResult; error: null }
+  | { data: StockData; error: null }
   | { data: null; error: ApiError }
 );
 
@@ -24,7 +24,7 @@ export function useStockData(symbol: InstrumentSymbol | null, interval: StockInt
     queueMicrotask(() => {
       if (controller.signal.aborted) return;
 
-      loadStockData(request.symbol, request.interval, controller.signal).then(
+      fetchStockData(request.symbol, request.interval, controller.signal).then(
         (data) => {
           if (!controller.signal.aborted) setResult({ request, data, error: null });
         },

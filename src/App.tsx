@@ -19,9 +19,10 @@ function App() {
   const daily = useStockData(symbol);
   const weekly = useStockData(interval === "weekly" ? symbol : null, "weekly");
   const active = interval === "daily" ? daily : weekly;
-  const quote = daily.stockData;
-  const latest = quote?.data[quote.data.length - 1];
-  const history = active.stockData;
+  const quote = daily.stockData?.data;
+  const latest = quote?.[quote.length - 1];
+  const history = active.stockData?.data;
+  const hasHistory = history !== undefined && history.length > 0;
   const isDark = theme === THEME.DARK;
   const themeLabel = isDark ? "Light theme" : "Dark theme";
 
@@ -45,7 +46,7 @@ function App() {
     >
       <section className="price-history glass-panel" aria-label="Price history">
         {quote && latest ? (
-          <QuoteHeader symbol={symbol} latest={latest} previous={quote.data[quote.data.length - 2]} />
+          <QuoteHeader symbol={symbol} latest={latest} previous={quote[quote.length - 2]} />
         ) : (
           <h2 className="quote-symbol">{symbol}</h2>
         )}
@@ -53,7 +54,7 @@ function App() {
           <DataStatus
             loading={daily.loading}
             error={daily.error}
-            empty={quote?.data.length === 0}
+            empty={quote?.length === 0}
             loadingMessage="Loading daily close…"
             emptyMessage="Daily close unavailable."
             errorLabel="Daily close unavailable"
@@ -64,23 +65,23 @@ function App() {
         <DataStatus
           loading={active.loading}
           error={active.error}
-          empty={history?.data.length === 0}
+          empty={history?.length === 0}
           loadingMessage={`Loading ${interval} prices…`}
           emptyMessage={`No ${interval} observations returned.`}
           errorLabel={interval === "weekly" ? "Weekly history unavailable" : "Daily history unavailable"}
           retry={active.retry}
         />
         <ChartControls interval={interval} view={view} onIntervalChange={setInterval} onViewChange={setView} />
-        {history?.asOf && (
+        {hasHistory && (
           <CandlestickChart
             key={`${symbol}-${interval}`}
-            data={history.data}
+            data={history}
             interval={interval}
             view={view}
           />
         )}
       </section>
-      {history?.asOf && <StockTable key={`${symbol}-${interval}`} observations={history.data} />}
+      {hasHistory && <StockTable key={`${symbol}-${interval}`} observations={history} />}
     </DashboardShell>
   );
 }

@@ -1,12 +1,17 @@
 import { useId, useState } from "react";
 import type { StockDataPoint } from "@/types/stock";
+import { formatObservationDate, formatPrice, formatShareCount } from "@/utils/stockFormatting";
 
-const columns = [
-  { key: "date", label: "Date" },
+const priceColumns = [
   { key: "open", label: "Open" },
   { key: "high", label: "High" },
   { key: "low", label: "Low" },
   { key: "close", label: "Close" },
+] as const;
+
+const columns = [
+  { key: "date", label: "Date" },
+  ...priceColumns,
   { key: "volume", label: "Volume" },
 ] as const;
 
@@ -14,9 +19,6 @@ type Column = (typeof columns)[number]["key"];
 type Direction = "ascending" | "descending";
 
 const pageSize = 5;
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const shares = new Intl.NumberFormat("en-US");
-const date = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 export function StockTable({ observations }: { observations: readonly StockDataPoint[] }) {
   const heading = useId();
@@ -74,13 +76,12 @@ export function StockTable({ observations }: { observations: readonly StockDataP
             {rows.map((observation) => (
               <tr key={observation.date}>
                 <th scope="row">
-                  <time dateTime={observation.date}>{date.format(new Date(observation.date))}</time>
+                  <time dateTime={observation.date}>{formatObservationDate(observation.date)}</time>
                 </th>
-                <td>{usd.format(observation.open)}</td>
-                <td>{usd.format(observation.high)}</td>
-                <td>{usd.format(observation.low)}</td>
-                <td>{usd.format(observation.close)}</td>
-                <td>{shares.format(observation.volume)}</td>
+                {priceColumns.map(({ key }) => (
+                  <td key={key}>{formatPrice(observation[key])}</td>
+                ))}
+                <td>{formatShareCount(observation.volume)}</td>
               </tr>
             ))}
           </tbody>

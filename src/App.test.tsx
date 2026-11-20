@@ -3,9 +3,10 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import App from "@/App";
-import { loadStockData, type StockDataResult } from "@/services/stockDataSource";
+import { fetchStockData } from "@/services/stockApi";
+import type { StockData } from "@/types/stock";
 
-vi.mock("@/services/stockDataSource", () => ({ loadStockData: vi.fn() }));
+vi.mock("@/services/stockApi", () => ({ fetchStockData: vi.fn() }));
 
 afterEach(() => {
   cleanup();
@@ -13,25 +14,21 @@ afterEach(() => {
 });
 
 it("updates the latest-session quote and statistics with the symbol and keeps them fixed during chart inspection", async () => {
-  const spy: StockDataResult = {
+  const spy: StockData = {
     symbol: "SPY",
-    source: "SPY test source",
-    asOf: "2025-03-12",
     data: [
       { date: "2025-03-11", open: 19, low: 18, high: 21, close: 20, volume: 5000 },
       { date: "2025-03-12", open: 20, low: 19, high: 23, close: 22, volume: 8000 },
     ],
   };
-  const ibit: StockDataResult = {
+  const ibit: StockData = {
     symbol: "IBIT",
-    source: "IBIT test source",
-    asOf: "2025-03-13",
     data: [
       { date: "2025-03-12", open: 42, low: 39, high: 43, close: 40, volume: 9000 },
       { date: "2025-03-13", open: 41, low: 37, high: 42, close: 38, volume: 15000 },
     ],
   };
-  vi.mocked(loadStockData).mockImplementation(async (symbol) => symbol === "SPY" ? spy : ibit);
+  vi.mocked(fetchStockData).mockImplementation(async (symbol) => symbol === "SPY" ? spy : ibit);
 
   render(<App />);
   await screen.findByRole("group", { name: "Latest close" });
@@ -61,14 +58,12 @@ it.each([
   ["daily", "Daily close unavailable. Network request failed"],
   ["weekly", "Weekly history unavailable. Network request failed"],
 ] as const)("identifies a failed %s request while the other result remains available", async (failedInterval, message) => {
-  vi.mocked(loadStockData).mockImplementation(async (symbol, interval) => {
+  vi.mocked(fetchStockData).mockImplementation(async (symbol, interval) => {
     if (interval === failedInterval) throw new Error("Network request failed");
 
     const date = interval === "weekly" ? "2025-03-07" : "2025-03-12";
     return {
       symbol,
-      source: "Test source",
-      asOf: date,
       data: [{ date, open: 20, low: 19, high: 23, close: 22, volume: 8000 }],
     };
   });
@@ -87,4 +82,15 @@ it.each([
     expect(screen.queryByRole("img", { name: "Candlestick price and volume chart" })).toBeNull();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
   }
+});
+
+it("shows an empty-history message without mounting the chart or table", async () => {
+  vi.mocked(fetchStockData).mockImplementation(async (symbol) => ({ symbol, data: [] }));
+
+  render(<App />);
+
+  expect(await screen.findByText("No daily observations returned.")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  expect(screen.queryByRole("img", { name: "Candlestick price and volume chart" })).toBeNull();
+  expect(screen.queryByRole("table", { name: "Historical prices" })).toBeNull();
 });

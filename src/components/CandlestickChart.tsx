@@ -3,6 +3,7 @@ import type { KeyboardEvent, PointerEvent } from "react";
 import type { ChartView } from "@/components/ChartControls";
 import { buildChartModel, CHART_HEIGHT } from "@/components/chartModel";
 import type { StockDataPoint, StockInterval } from "@/types/stock";
+import { formatPrice, formatShareCount } from "@/utils/stockFormatting";
 
 interface CandlestickChartProps {
   data: readonly StockDataPoint[];
@@ -14,8 +15,6 @@ const axisDates = {
   daily: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
   weekly: new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" }),
 };
-const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const shares = new Intl.NumberFormat("en-US");
 const chartLabels: Record<ChartView, string> = {
   candles: "Candlestick price and volume chart",
   bars: "OHLC price and volume bar chart",
@@ -57,11 +56,11 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
   if (!latest) return <p>No observations for this range.</p>;
 
   const fields = [
-    ["Open", usd.format(current.open)],
-    ["High", usd.format(current.high)],
-    ["Low", usd.format(current.low)],
-    ["Close", usd.format(current.close)],
-    ["Volume", shares.format(current.volume)],
+    ["Open", formatPrice(current.open)],
+    ["High", formatPrice(current.high)],
+    ["Low", formatPrice(current.low)],
+    ["Close", formatPrice(current.close)],
+    ["Volume", formatShareCount(current.volume)],
   ];
 
   function inspectPointer(event: PointerEvent<SVGSVGElement>) {
@@ -121,7 +120,7 @@ export function CandlestickChart({ data, interval, view }: CandlestickChartProps
         {price.ticks(height < 175 ? 3 : 5).map((tick) => (
           <g key={tick}>
             <line className="chart-grid" x1={plot.left} x2={plot.right} y1={price(tick)} y2={price(tick)} />
-            <text x={plot.right + 7} y={price(tick)} dominantBaseline="middle">{usd.format(tick)}</text>
+            <text x={plot.right + 7} y={price(tick)} dominantBaseline="middle">{formatPrice(tick)}</text>
           </g>
         ))}
         <g aria-label={interval === "daily" ? "Daily volume" : "Weekly volume"}>
