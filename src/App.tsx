@@ -1,36 +1,43 @@
-import { useState } from "react";
-import { CandlestickChart } from "@/components/CandlestickChart";
-import { ChartControls, type ChartView } from "@/components/ChartControls";
-import { DashboardShell } from "@/components/DashboardShell";
-import { DataStatus } from "@/components/DataStatus";
-import { QuoteHeader } from "@/components/QuoteHeader";
-import { StockTable } from "@/components/StockTable";
-import { SymbolRail } from "@/components/SymbolRail";
-import { instruments, type InstrumentSymbol } from "@/data/instruments";
-import { useStockData } from "@/hooks/useStockData";
-import { THEME, useTheme } from "@/hooks/useTheme";
-import type { StockInterval } from "@/types/stock";
+import { useState } from 'react';
+
+import { CandlestickChart } from '@/components/CandlestickChart';
+import { ChartControls, type ChartView } from '@/components/ChartControls';
+import { DashboardShell } from '@/components/DashboardShell';
+import { DataStatus } from '@/components/DataStatus';
+import { QuoteHeader } from '@/components/QuoteHeader';
+import { StockTable } from '@/components/StockTable';
+import { SymbolRail } from '@/components/SymbolRail';
+import { instruments, type InstrumentSymbol } from '@/data/instruments';
+import { useStockData } from '@/hooks/useStockData';
+import { THEME, useTheme } from '@/hooks/useTheme';
+import type { StockInterval } from '@/types/stock';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
   const [symbol, setSymbol] = useState<InstrumentSymbol>(instruments[0].symbol);
-  const [interval, setInterval] = useState<StockInterval>("daily");
-  const [view, setView] = useState<ChartView>("candles");
+  const [interval, setInterval] = useState<StockInterval>('daily');
+  const [view, setView] = useState<ChartView>('candles');
   const daily = useStockData(symbol);
-  const weekly = useStockData(interval === "weekly" ? symbol : null, "weekly");
-  const active = interval === "daily" ? daily : weekly;
+  const weekly = useStockData(interval === 'weekly' ? symbol : null, 'weekly');
+  const active = interval === 'daily' ? daily : weekly;
   const quote = daily.stockData?.data;
   const latest = quote?.[quote.length - 1];
   const history = active.stockData?.data;
   const hasHistory = history !== undefined && history.length > 0;
   const isDark = theme === THEME.DARK;
-  const themeLabel = isDark ? "Light theme" : "Dark theme";
+  const themeLabel = isDark ? 'Light theme' : 'Dark theme';
 
   return (
     <DashboardShell
       rail={<SymbolRail symbol={symbol} onSelect={setSymbol} />}
-      themeControl={(
-        <button className="theme-toggle" type="button" aria-label={themeLabel} title={themeLabel} onClick={toggleTheme}>
+      themeControl={
+        <button
+          className="theme-toggle"
+          type="button"
+          aria-label={themeLabel}
+          title={themeLabel}
+          onClick={toggleTheme}
+        >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             {isDark ? (
               <>
@@ -42,15 +49,19 @@ function App() {
             )}
           </svg>
         </button>
-      )}
+      }
     >
       <section className="price-history glass-panel" aria-label="Price history">
         {quote && latest ? (
-          <QuoteHeader symbol={symbol} latest={latest} previous={quote[quote.length - 2]} />
+          <QuoteHeader
+            symbol={symbol}
+            latest={latest}
+            previous={quote[quote.length - 2]}
+          />
         ) : (
           <h2 className="quote-symbol">{symbol}</h2>
         )}
-        {interval === "weekly" && (
+        {interval === 'weekly' && (
           <DataStatus
             loading={daily.loading}
             error={daily.error}
@@ -68,10 +79,19 @@ function App() {
           empty={history?.length === 0}
           loadingMessage={`Loading ${interval} prices…`}
           emptyMessage={`No ${interval} observations returned.`}
-          errorLabel={interval === "weekly" ? "Weekly history unavailable" : "Daily history unavailable"}
+          errorLabel={
+            interval === 'weekly'
+              ? 'Weekly history unavailable'
+              : 'Daily history unavailable'
+          }
           retry={active.retry}
         />
-        <ChartControls interval={interval} view={view} onIntervalChange={setInterval} onViewChange={setView} />
+        <ChartControls
+          interval={interval}
+          view={view}
+          onIntervalChange={setInterval}
+          onViewChange={setView}
+        />
         {hasHistory && (
           <CandlestickChart
             key={`${symbol}-${interval}`}
@@ -81,7 +101,9 @@ function App() {
           />
         )}
       </section>
-      {hasHistory && <StockTable key={`${symbol}-${interval}`} observations={history} />}
+      {hasHistory && (
+        <StockTable key={`${symbol}-${interval}`} observations={history} />
+      )}
     </DashboardShell>
   );
 }

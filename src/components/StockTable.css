@@ -73,7 +73,7 @@
   font-size: 1rem;
 }
 
-.stock-table-pagination button[aria-disabled="true"] {
+.stock-table-pagination button[aria-disabled='true'] {
   color: var(--text-secondary);
   cursor: default;
 }

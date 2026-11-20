@@ -8,7 +8,7 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 export function getCache<T>(
   key: string,
-  isPayload: (data: unknown) => data is T,
+  isPayload: (data: unknown) => data is T
 ): T | null {
   try {
     const raw = localStorage.getItem(key);
@@ -41,8 +41,12 @@ export function setCache<T>(key: string, data: T): void {
 }
 
 function isCacheEntry(value: unknown): value is CacheEntry<unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-  if (!("cachedAt" in value && "expiresAt" in value && "data" in value)) return false;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+  if (!('cachedAt' in value && 'expiresAt' in value && 'data' in value)) {
+    return false;
+  }
   return (
     isIsoTimestamp(value.cachedAt) &&
     isIsoTimestamp(value.expiresAt) &&
@@ -51,7 +55,9 @@ function isCacheEntry(value: unknown): value is CacheEntry<unknown> {
 }
 
 function isIsoTimestamp(value: unknown): value is string {
-  if (typeof value !== "string") return false;
+  if (typeof value !== 'string') return false;
   const timestamp = new Date(value);
-  return Number.isFinite(timestamp.getTime()) && timestamp.toISOString() === value;
+  return (
+    Number.isFinite(timestamp.getTime()) && timestamp.toISOString() === value
+  );
 }

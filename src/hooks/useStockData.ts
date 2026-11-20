@@ -1,19 +1,29 @@
-import { useEffect, useMemo, useState } from "react";
-import type { InstrumentSymbol } from "@/data/instruments";
-import { fetchStockData } from "@/services/stockApi";
-import { type ApiError, StockApiError } from "@/types/error";
-import type { StockData, StockInterval } from "@/types/stock";
+import { useEffect, useMemo, useState } from 'react';
 
-type Request = { symbol: InstrumentSymbol; interval: StockInterval; attempt: number };
+import type { InstrumentSymbol } from '@/data/instruments';
+import { fetchStockData } from '@/services/stockApi';
+import { type ApiError, StockApiError } from '@/types/error';
+import type { StockData, StockInterval } from '@/types/stock';
+
+type Request = {
+  symbol: InstrumentSymbol;
+  interval: StockInterval;
+  attempt: number;
+};
 type Result = { request: Request } & (
-  | { data: StockData; error: null }
-  | { data: null; error: ApiError }
+  { data: StockData; error: null } | { data: null; error: ApiError }
 );
 
-export function useStockData(symbol: InstrumentSymbol | null, interval: StockInterval = "daily") {
+export function useStockData(
+  symbol: InstrumentSymbol | null,
+  interval: StockInterval = 'daily'
+) {
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
-  const request = useMemo(() => symbol ? { symbol, interval, attempt } : null, [symbol, interval, attempt]);
+  const request = useMemo(
+    () => (symbol ? { symbol, interval, attempt } : null),
+    [symbol, interval, attempt]
+  );
   const current = result?.request === request ? result : null;
 
   useEffect(() => {
@@ -26,15 +36,18 @@ export function useStockData(symbol: InstrumentSymbol | null, interval: StockInt
 
       fetchStockData(request.symbol, request.interval, controller.signal).then(
         (data) => {
-          if (!controller.signal.aborted) setResult({ request, data, error: null });
+          if (!controller.signal.aborted) {
+            setResult({ request, data, error: null });
+          }
         },
         (error: unknown) => {
           if (controller.signal.aborted) return;
-          const details: ApiError = error instanceof StockApiError
-            ? { code: error.code, message: error.message }
-            : { code: "NETWORK_ERROR", message: "Network request failed" };
+          const details: ApiError =
+            error instanceof StockApiError
+              ? { code: error.code, message: error.message }
+              : { code: 'NETWORK_ERROR', message: 'Network request failed' };
           setResult({ request, data: null, error: details });
-        },
+        }
       );
     });
 

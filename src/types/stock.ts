@@ -1,4 +1,4 @@
-export type StockInterval = "daily" | "weekly";
+export type StockInterval = 'daily' | 'weekly';
 
 export interface StockDataPoint {
   date: string;

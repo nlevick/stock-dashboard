@@ -1,15 +1,23 @@
-import { expect, it } from "vitest";
-import { buildChartModel } from "@/components/chartModel";
-import type { StockDataPoint } from "@/types/stock";
+import { expect, it } from 'vitest';
 
-const flat: StockDataPoint = { date: "2025-03-07", open: 15, high: 15, low: 15, close: 15, volume: 0 };
-const followingMonday = { ...flat, date: "2025-03-10" };
+import { buildChartModel } from '@/components/chartModel';
+import type { StockDataPoint } from '@/types/stock';
+
+const flat: StockDataPoint = {
+  date: '2025-03-07',
+  open: 15,
+  high: 15,
+  low: 15,
+  close: 15,
+  volume: 0,
+};
+const followingMonday = { ...flat, date: '2025-03-10' };
 
 it.each([
-  { name: "empty", data: [] },
-  { name: "single", data: [flat] },
-  { name: "flat", data: [flat, followingMonday] },
-])("produces finite price and volume geometry for $name data", ({ data }) => {
+  { name: 'empty', data: [] },
+  { name: 'single', data: [flat] },
+  { name: 'flat', data: [flat, followingMonday] },
+])('produces finite price and volume geometry for $name data', ({ data }) => {
   const model = buildChartModel(data, 320);
   const [low, high] = model.price.domain();
   const [minVolume, maxVolume] = model.volume.domain();
@@ -29,11 +37,16 @@ it.each([
   }
 });
 
-it("fits a resized plot and spaces neighboring trading sessions evenly across a weekend", () => {
-  const tuesday = { ...flat, date: "2025-03-11" };
+it('fits a resized plot and spaces neighboring trading sessions evenly across a weekend', () => {
+  const tuesday = { ...flat, date: '2025-03-11' };
   for (const width of [240, 900]) {
-    const { center, plot } = buildChartModel([flat, followingMonday, tuesday], width);
-    const [fridayX, mondayX, tuesdayX] = [flat, followingMonday, tuesday].map(({ date }) => center(date));
+    const { center, plot } = buildChartModel(
+      [flat, followingMonday, tuesday],
+      width
+    );
+    const [fridayX, mondayX, tuesdayX] = [flat, followingMonday, tuesday].map(
+      ({ date }) => center(date)
+    );
     expect(fridayX).toBeGreaterThan(plot.left);
     expect(tuesdayX).toBeLessThan(plot.right);
     expect(plot.right).toBeLessThan(width);

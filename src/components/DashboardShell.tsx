@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 interface DashboardShellProps {
   rail: ReactNode;
@@ -6,7 +6,11 @@ interface DashboardShellProps {
   children: ReactNode;
 }
 
-export function DashboardShell({ rail, themeControl, children }: DashboardShellProps) {
+export function DashboardShell({
+  rail,
+  themeControl,
+  children,
+}: DashboardShellProps) {
   return (
     <div className="dashboard">
       <header className="dashboard-header">

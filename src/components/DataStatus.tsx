@@ -1,4 +1,4 @@
-import type { ApiError } from "@/types/error";
+import type { ApiError } from '@/types/error';
 
 interface DataStatusProps {
   loading: boolean;
@@ -12,15 +12,32 @@ interface DataStatusProps {
 }
 
 export function DataStatus({
-  loading, error, empty, loadingMessage, emptyMessage, errorLabel, retry, retryLabel = "Retry",
+  loading,
+  error,
+  empty,
+  loadingMessage,
+  emptyMessage,
+  errorLabel,
+  retry,
+  retryLabel = 'Retry',
 }: DataStatusProps) {
-  if (loading) return <p className="data-status data-status-loading" role="status">{loadingMessage}</p>;
+  if (loading) {
+    return (
+      <p className="data-status data-status-loading" role="status">
+        {loadingMessage}
+      </p>
+    );
+  }
   if (!error && !empty) return null;
 
   return (
     <div className="data-status">
-      <p role={error ? "alert" : "status"}>{error ? `${errorLabel}. ${error.message}` : emptyMessage}</p>
-      <button className="dashboard-button" type="button" onClick={retry}>{retryLabel}</button>
+      <p role={error ? 'alert' : 'status'}>
+        {error ? `${errorLabel}. ${error.message}` : emptyMessage}
+      </p>
+      <button className="dashboard-button" type="button" onClick={retry}>
+        {retryLabel}
+      </button>
     </div>
   );
 }

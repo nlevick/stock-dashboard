@@ -1,4 +1,4 @@
-import { instruments, type InstrumentSymbol } from "@/data/instruments";
+import { instruments, type InstrumentSymbol } from '@/data/instruments';
 
 interface SymbolRailProps {
   symbol: InstrumentSymbol;
@@ -19,7 +19,12 @@ export function SymbolRail({ symbol, onSelect }: SymbolRailProps) {
           onClick={() => onSelect(instrument.symbol)}
         >
           <strong>{instrument.symbol}</strong>
-          <span className="visually-hidden" id={`instrument-${instrument.symbol}`}>{instrument.name}</span>
+          <span
+            className="visually-hidden"
+            id={`instrument-${instrument.symbol}`}
+          >
+            {instrument.name}
+          </span>
         </button>
       ))}
     </div>
