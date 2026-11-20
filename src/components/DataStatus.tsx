@@ -14,7 +14,7 @@ interface DataStatusProps {
 export function DataStatus({
   loading, error, empty, loadingMessage, emptyMessage, errorLabel, retry, retryLabel = "Retry",
 }: DataStatusProps) {
-  if (loading) return <p className="data-status" role="status">{loadingMessage}</p>;
+  if (loading) return <p className="data-status data-status-loading" role="status">{loadingMessage}</p>;
   if (!error && !empty) return null;
 
   return (

@@ -1,3 +1,5 @@
+@import "../components/CandlestickChart.css";
+
 :root {
   color-scheme: dark;
   --bg-primary: #0e1623;
@@ -57,7 +59,7 @@ body {
     "Segoe UI",
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: var(--page-surface) var(--bg-primary);
+  background: var(--page-surface) top left / 100vw 100vh no-repeat var(--bg-primary);
   color: var(--text-primary);
 }
 
@@ -386,6 +388,10 @@ button {
   gap: 0.625rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+
+.data-status-loading {
+  color: var(--accent);
 }
 
 .data-status [role="alert"] {

@@ -10,7 +10,6 @@ import { instruments, type InstrumentSymbol } from "@/data/instruments";
 import { useStockData } from "@/hooks/useStockData";
 import { THEME, useTheme } from "@/hooks/useTheme";
 import type { StockInterval } from "@/types/stock";
-import "@/styles/theme.css";
 
 function App() {
   const { theme, toggleTheme } = useTheme();

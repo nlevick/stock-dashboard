@@ -3,7 +3,6 @@ import type { KeyboardEvent, PointerEvent } from "react";
 import type { ChartView } from "@/components/ChartControls";
 import { buildChartModel, CHART_HEIGHT } from "@/components/chartModel";
 import type { StockDataPoint, StockInterval } from "@/types/stock";
-import "./CandlestickChart.css";
 
 interface CandlestickChartProps {
   data: readonly StockDataPoint[];
