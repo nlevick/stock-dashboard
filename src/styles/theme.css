@@ -1,4 +1,5 @@
 @import "../components/CandlestickChart.css";
+@import "../components/StockTable.css";
 
 :root {
   color-scheme: dark;
@@ -281,10 +282,6 @@ button {
   margin-block-start: 0.5rem;
 }
 
-.chart-observation {
-  margin-block-start: 1.25rem;
-}
-
 @media (min-width: 1080px) {
   .price-history {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -435,86 +432,6 @@ button {
   font-size: 1.0625rem;
 }
 
-.stock-history h2 {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.stock-table-scroll {
-  min-width: 0;
-  overflow-x: auto;
-}
-
-.stock-history table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.stock-history th,
-.stock-history td {
-  padding: 0.375rem 0.625rem;
-  text-align: end;
-}
-
-.stock-history th:first-child {
-  text-align: start;
-}
-
-.stock-history thead th {
-  padding-block: 0.125rem 0.375rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.8125rem;
-}
-
-.stock-history tbody th {
-  font-weight: inherit;
-}
-
-.stock-history tbody tr:nth-child(even) {
-  background: var(--row-surface);
-}
-
-.stock-history button {
-  padding: 0.25rem 0;
-  border: 0;
-  color: inherit;
-  background: transparent;
-  cursor: pointer;
-}
-
-.stock-history th[aria-sort] button,
-.stock-table-pagination button {
-  color: var(--accent);
-}
-
-.stock-table-footer,
-.stock-table-pagination {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
-}
-
-.stock-table-footer {
-  justify-content: space-between;
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-}
-
-.stock-table-pagination button {
-  min-width: 1.75rem;
-  font-size: 1rem;
-}
-
-.stock-table-pagination button[aria-disabled="true"] {
-  color: var(--text-secondary);
-  cursor: default;
-}
-
 @media (max-width: 760px) {
   .dashboard {
     padding-bottom: 0.375rem;
@@ -556,17 +473,8 @@ button {
     padding-block: 0.625rem;
   }
 
-  .chart-observation {
-    margin-block-start: 0.875rem;
-  }
-
   .stock-history {
     gap: 0.5rem;
-  }
-
-  .stock-history th,
-  .stock-history td {
-    padding-block: 0.3125rem;
   }
 }
 
@@ -579,8 +487,7 @@ button {
 
 @media (pointer: coarse) {
   .chart-controls button,
-  .dashboard-button,
-  .stock-table-pagination button {
+  .dashboard-button {
     min-height: 44px;
   }
 
