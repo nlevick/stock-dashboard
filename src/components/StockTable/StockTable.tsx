@@ -150,7 +150,6 @@ export function StockTable({
       >
         <p role="status">
           {start + 1}–{start + rows.length} of {observations.length}
-          {' observations'}
         </p>
         <div
           className="stock-table-pagination"

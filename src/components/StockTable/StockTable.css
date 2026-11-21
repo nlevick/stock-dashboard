@@ -64,7 +64,7 @@
   visibility: hidden;
 }
 
-.stock-history button {
+.stock-history thead button {
   padding: 0.25rem 0;
   border: 0;
   color: inherit;
@@ -72,8 +72,7 @@
   cursor: pointer;
 }
 
-.stock-history th[aria-sort] button,
-.stock-table-pagination button {
+.stock-history th[aria-sort] button {
   color: var(--accent);
 }
 
@@ -101,7 +100,7 @@
   font-size: 0.8125rem;
 }
 
-@container (max-width: 20rem) {
+@container (max-width: 22.5rem) {
   .stock-table-footer {
     flex-direction: column;
     align-items: flex-start;
@@ -109,12 +108,11 @@
 }
 
 .stock-table-pagination button {
-  min-width: 1.75rem;
-  font-size: 1rem;
+  min-width: 2rem;
 }
 
-.stock-table-pagination button[aria-disabled='true'] {
-  color: var(--text-secondary);
+.stock-table-pagination button:is(:disabled, [aria-disabled='true']) {
+  opacity: 0.55;
   cursor: default;
 }
 
@@ -126,11 +124,5 @@
   .stock-history th,
   .stock-history td {
     padding-block: 0.3125rem;
-  }
-}
-
-@media (pointer: coarse) {
-  .stock-table-pagination button {
-    min-height: 44px;
   }
 }

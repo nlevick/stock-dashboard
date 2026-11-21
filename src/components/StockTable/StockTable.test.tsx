@@ -102,29 +102,29 @@ it('paginates, then resets an invalid page when the observations shrink', () => 
   const dates = () =>
     screen.getAllByRole('rowheader').map((cell) => cell.textContent);
 
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7 observations');
+  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
   expect(previous.getAttribute('aria-disabled')).toBe('true');
   next.focus();
   fireEvent.click(next);
   expect(document.activeElement).toBe(next);
   expect(dates()).toEqual(['Dec 10, 2024', 'Dec 2, 2024']);
-  expect(screen.getByRole('status').textContent).toBe('6–7 of 7 observations');
+  expect(screen.getByRole('status').textContent).toBe('6–7 of 7');
   expect(next.getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(next);
-  expect(screen.getByRole('status').textContent).toBe('6–7 of 7 observations');
+  expect(screen.getByRole('status').textContent).toBe('6–7 of 7');
   previous.focus();
   fireEvent.click(previous);
   expect(document.activeElement).toBe(previous);
   fireEvent.click(previous);
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7 observations');
+  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
   fireEvent.click(next);
 
   rerender(<StockTable observations={observations.slice(0, 2)} />);
   expect(dates()).toEqual(['Jan 1, 2025', 'Dec 10, 2024']);
-  expect(screen.getByRole('status').textContent).toBe('1–2 of 2 observations');
+  expect(screen.getByRole('status').textContent).toBe('1–2 of 2');
   expect(previous.getAttribute('aria-disabled')).toBe('true');
   expect(next.getAttribute('aria-disabled')).toBe('true');
 
   rerender(<StockTable observations={observations} />);
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7 observations');
+  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
 });
