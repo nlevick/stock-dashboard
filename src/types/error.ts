@@ -1,17 +1,18 @@
 export type StockApiErrorCode =
-  | "RATE_LIMITED"
-  | "INVALID_SYMBOL"
-  | "NETWORK_ERROR"
-  | "PARSE_ERROR"
-  | "HTTP_ERROR";
+  | 'RATE_LIMITED'
+  | 'ACCESS_RESTRICTED'
+  | 'INVALID_SYMBOL'
+  | 'NETWORK_ERROR'
+  | 'PARSE_ERROR'
+  | 'HTTP_ERROR';
 
 export class StockApiError extends Error {
   constructor(
     public readonly code: StockApiErrorCode,
-    message: string,
+    message: string
   ) {
     super(message);
-    this.name = "StockApiError";
+    this.name = 'StockApiError';
   }
 }
 

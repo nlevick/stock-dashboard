@@ -1,80 +1,133 @@
-import { useStockData } from "@/hooks/useStockData";
-import { THEME, useTheme } from "@/hooks/useTheme";
-import "@/styles/theme.css";
+import { useState } from 'react';
+
+import { CandlestickChart } from '@/components/CandlestickChart/CandlestickChart';
+import {
+  ChartControls,
+  type ChartView,
+} from '@/components/CandlestickChart/ChartControls';
+import { DashboardShell } from '@/components/DashboardShell';
+import { DataStatus } from '@/components/DataStatus';
+import { QuoteHeader } from '@/components/QuoteHeader/QuoteHeader';
+import { StockTable } from '@/components/StockTable/StockTable';
+import { SymbolRail } from '@/components/SymbolRail';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { instruments, type InstrumentSymbol } from '@/data/instruments';
+import { useStockData } from '@/hooks/useStockData';
+import { useTheme } from '@/hooks/useTheme';
+import type { StockDataPoint, StockInterval } from '@/types/stock';
+
+interface Selection {
+  symbol: InstrumentSymbol;
+  interval: StockInterval;
+}
+
+interface Prices extends Selection {
+  quote: readonly StockDataPoint[];
+  history: readonly StockDataPoint[];
+}
+
+const noObservations: readonly StockDataPoint[] = [];
 
 function App() {
   const { theme, toggleTheme } = useTheme();
-  const { loading, error, stockData } = useStockData("IBIT");
+  const [{ symbol, interval }, setSelection] = useState<Selection>({
+    symbol: instruments[0].symbol,
+    interval: 'daily',
+  });
+  const [view, setView] = useState<ChartView>('candles');
+  const [previous, setPrevious] = useState<Prices | null>(null);
+  const daily = useStockData(symbol);
+  const weekly = useStockData(interval === 'weekly' ? symbol : null, 'weekly');
+  const active = interval === 'daily' ? daily : weekly;
+  // Weekly history and the daily quote can arrive at different times.
+  const pending = daily.loading || active.loading;
+  const showingPrevious = pending && previous !== null;
+  const displayed = showingPrevious
+    ? previous
+    : {
+        symbol,
+        interval,
+        quote: daily.stockData?.data ?? noObservations,
+        history: active.stockData?.data ?? noObservations,
+      };
+  const { quote, history } = displayed;
+  const historyLoading = active.loading || showingPrevious;
 
-  {
-    /* TODO: Breakout components */
+  function select(next: Selection) {
+    if (next.symbol === symbol && next.interval === interval) return;
+    setPrevious(quote.length || history.length ? displayed : null);
+    setSelection(next);
   }
-  return (
-    <div style={{ padding: "2rem" }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "2rem",
-        }}
-      >
-        <h1>Stock Dashboard</h1>
-        <button
-          onClick={toggleTheme}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: "var(--accent)",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "0.9rem",
-          }}
-        >
-          {theme === THEME.DARK ? "🌙" : "☀️"} Toggle Theme
-        </button>
-      </header>
 
-      {loading && <p>Loading stock data...</p>}
-      {error && (
-        <p style={{ color: "var(--chart-down)" }}>
-          Error: {error.message}
-          {/* {error.code === "RATE_LIMITED" && ( */}
-          {/*   <button onClick={retry}>Retry</button> */}
-          {/* )} */}
-          {error.code === "INVALID_SYMBOL" && (
-            <span> — check the symbol and try again</span>
-          )}
-        </p>
-      )}
-      {stockData && (
-        <div>
-          <h2>{stockData.symbol} Stock Data</h2>
-          <p style={{ color: "var(--text-secondary)" }}>
-            Loaded {stockData.data.length} data points from{" "}
-            {stockData.data[0]?.date} to{" "}
-            {stockData.data[stockData.data.length - 1]?.date}
-          </p>
-          {/* TODO: Chart goes here */}
-          <div
-            style={{
-              marginTop: "2rem",
-              padding: "2rem",
-              backgroundColor: "var(--bg-secondary)",
-              borderRadius: "8px",
-              border: "1px solid var(--border-color)",
-            }}
-          >
-            <p>📊 Candlestick chart will be rendered here</p>
-            <p style={{ color: "var(--text-secondary)", marginTop: "1rem" }}>
-              Latest close: $
-              {stockData.data[stockData.data.length - 1]?.close.toFixed(2)}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
+  function retry(load: () => void) {
+    setPrevious(null);
+    load();
+  }
+
+  return (
+    <DashboardShell
+      rail={
+        <SymbolRail
+          symbol={symbol}
+          onSelect={(symbol) => select({ symbol, interval })}
+        />
+      }
+      themeControl={<ThemeToggle theme={theme} onToggle={toggleTheme} />}
+    >
+      <section className="price-history glass-panel" aria-label="Price history">
+        <QuoteHeader
+          symbol={displayed.symbol}
+          latest={quote[quote.length - 1]}
+          previous={quote[quote.length - 2]}
+          status={
+            interval === 'weekly' &&
+            !showingPrevious &&
+            quote.length === 0 &&
+            (!daily.loading || !historyLoading) && (
+              <DataStatus
+                loading={daily.loading}
+                error={daily.error}
+                empty
+                emptyMessage="Daily close unavailable."
+                errorLabel="Daily close unavailable"
+                retry={() => retry(daily.retry)}
+                retryLabel="Retry daily close"
+              />
+            )
+          }
+        />
+        <ChartControls
+          interval={interval}
+          view={view}
+          onIntervalChange={(interval) => select({ symbol, interval })}
+          onViewChange={setView}
+        />
+        <CandlestickChart
+          data={history}
+          interval={displayed.interval}
+          view={view}
+          loading={historyLoading}
+          status={
+            <DataStatus
+              loading={historyLoading}
+              error={active.error}
+              empty={history.length === 0}
+              emptyMessage={`No ${interval} observations returned.`}
+              errorLabel={
+                interval === 'weekly'
+                  ? 'Weekly history unavailable'
+                  : 'Daily history unavailable'
+              }
+              retry={() => retry(active.retry)}
+            />
+          }
+        />
+      </section>
+      <StockTable
+        observations={history}
+        series={`${displayed.symbol}-${displayed.interval}`}
+      />
+    </DashboardShell>
   );
 }
 

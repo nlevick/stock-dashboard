@@ -1,0 +1,140 @@
+.chart-instructions {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.chart-observation {
+  margin-block-start: 1.25rem;
+}
+
+.chart-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)) minmax(
+      0,
+      1.65fr
+    );
+  gap: 0.5rem clamp(0.375rem, 1cqi, 1rem);
+  max-inline-size: 35rem;
+}
+
+.chart-readout dt {
+  font-size: 0.8125rem;
+}
+
+.chart-readout dd {
+  font-size: 0.9375rem;
+}
+
+.chart-plot {
+  position: relative;
+}
+
+.chart-plot[data-empty='true'] {
+  border-radius: 0.5rem;
+  background: var(--control-surface);
+}
+
+.chart-plot[data-empty='true'] .stock-chart {
+  visibility: hidden;
+}
+
+.chart-plot[data-loading='true'] .stock-chart {
+  opacity: 0.5;
+}
+
+.chart-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+.chart-status .data-status {
+  justify-content: center;
+  text-align: center;
+}
+
+.chart-status .data-status-loading {
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  background: var(--bg-secondary);
+}
+
+.chart-status button {
+  pointer-events: auto;
+}
+
+.stock-chart {
+  display: block;
+  width: 100%;
+  height: clamp(8.875rem, calc(100dvh - 36.5rem), 22rem);
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.stock-chart text {
+  fill: var(--text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-grid {
+  stroke: var(--chart-grid);
+}
+
+.chart-volume {
+  fill: var(--chart-up);
+  opacity: var(--volume-opacity);
+}
+
+.chart-volume[data-direction='down'] {
+  fill: var(--chart-down);
+}
+
+.chart-candle,
+.chart-bar {
+  stroke: var(--chart-up);
+  fill: var(--chart-up);
+}
+
+.chart-candle-down,
+.chart-bar-down {
+  stroke: var(--chart-down);
+  fill: var(--chart-down);
+}
+
+.chart-close-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.chart-close-point,
+.chart-crosshair-point {
+  fill: var(--accent);
+}
+
+.chart-crosshair {
+  stroke: var(--text-secondary);
+  stroke-dasharray: 3 4;
+}
+
+@media (max-width: 760px) {
+  .chart-observation {
+    margin-block-start: 0.875rem;
+  }
+
+  .stock-chart {
+    height: clamp(8.75rem, calc(100dvh - 44rem), 17rem);
+  }
+}
+
+@container (max-width: 31rem) {
+  .chart-readout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.35fr);
+    column-gap: 0.625rem;
+    max-inline-size: 26rem;
+  }
+}
