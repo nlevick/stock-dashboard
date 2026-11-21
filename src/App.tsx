@@ -1,15 +1,19 @@
 import { useState } from 'react';
 
-import { CandlestickChart } from '@/components/CandlestickChart';
-import { ChartControls, type ChartView } from '@/components/ChartControls';
+import { CandlestickChart } from '@/components/CandlestickChart/CandlestickChart';
+import {
+  ChartControls,
+  type ChartView,
+} from '@/components/CandlestickChart/ChartControls';
 import { DashboardShell } from '@/components/DashboardShell';
 import { DataStatus } from '@/components/DataStatus';
-import { QuoteHeader } from '@/components/QuoteHeader';
-import { StockTable } from '@/components/StockTable';
+import { QuoteHeader } from '@/components/QuoteHeader/QuoteHeader';
+import { StockTable } from '@/components/StockTable/StockTable';
 import { SymbolRail } from '@/components/SymbolRail';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { instruments, type InstrumentSymbol } from '@/data/instruments';
 import { useStockData } from '@/hooks/useStockData';
-import { THEME, useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 import type { StockInterval } from '@/types/stock';
 
 function App() {
@@ -24,32 +28,11 @@ function App() {
   const latest = quote?.[quote.length - 1];
   const history = active.stockData?.data;
   const hasHistory = history !== undefined && history.length > 0;
-  const isDark = theme === THEME.DARK;
-  const themeLabel = isDark ? 'Light theme' : 'Dark theme';
 
   return (
     <DashboardShell
       rail={<SymbolRail symbol={symbol} onSelect={setSymbol} />}
-      themeControl={
-        <button
-          className="theme-toggle"
-          type="button"
-          aria-label={themeLabel}
-          title={themeLabel}
-          onClick={toggleTheme}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            {isDark ? (
-              <>
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
-              </>
-            ) : (
-              <path d="M20.9 13.4A9 9 0 0 1 10.6 3.1 9 9 0 1 0 20.9 13.4Z" />
-            )}
-          </svg>
-        </button>
-      }
+      themeControl={<ThemeToggle theme={theme} onToggle={toggleTheme} />}
     >
       <section className="price-history glass-panel" aria-label="Price history">
         {quote && latest ? (

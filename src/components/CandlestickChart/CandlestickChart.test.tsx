@@ -11,6 +11,8 @@ import {
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import App from '@/App';
 
+import { CHART_HEIGHT, CHART_WIDTH } from './chartModel';
+
 const requestWait = { timeout: 2_500 };
 const candleChartLabel = 'Candlestick price and volume chart';
 
@@ -46,6 +48,22 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+it('measures the chart on mount without ResizeObserver', async () => {
+  vi.stubGlobal('ResizeObserver', undefined);
+  vi.spyOn(SVGSVGElement.prototype, 'getBoundingClientRect').mockReturnValue(
+    new DOMRect(0, 0, 480, 200)
+  );
+
+  render(<App />);
+
+  const chart = await screen.findByRole(
+    'img',
+    { name: candleChartLabel },
+    requestWait
+  );
+  expect(chart.getAttribute('viewBox')).toBe('0 0 480 200');
 });
 
 it.each([
@@ -91,7 +109,7 @@ it.each([
     fireEvent.keyDown(chart, { key: 'End' });
     expect(within(readout).getByText('2025-03-12')).toBeTruthy();
     vi.spyOn(chart, 'getBoundingClientRect').mockReturnValue(
-      new DOMRect(10, 0, 640, 284)
+      new DOMRect(10, 0, CHART_WIDTH, CHART_HEIGHT)
     );
     fireEvent(
       chart,

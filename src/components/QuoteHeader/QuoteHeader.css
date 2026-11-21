@@ -1,0 +1,78 @@
+.quote-symbol {
+  font-size: 1.3125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.quote-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 0.75rem clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.quote-summary {
+  min-width: 0;
+}
+
+.quote-price-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-identity {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.quote-price {
+  font-size: clamp(2.5rem, 5vw, 3.25rem);
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  font-weight: 450;
+}
+
+.quote-change {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.quote-change[data-direction='up'] {
+  color: var(--chart-up);
+}
+
+.quote-change[data-direction='down'] {
+  color: var(--chart-down);
+}
+
+.stock-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem clamp(1rem, 2.5vw, 2.25rem);
+}
+
+.stock-summary dt {
+  font-size: 0.875rem;
+}
+
+.stock-summary dd {
+  font-size: 1.0625rem;
+}
+
+@media (max-width: 760px) {
+  .quote-summary {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stock-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+}

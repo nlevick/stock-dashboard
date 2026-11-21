@@ -8,8 +8,9 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
-import { StockTable } from '@/components/StockTable';
 import type { StockDataPoint } from '@/types/stock';
+
+import { StockTable } from './StockTable';
 
 const observations: StockDataPoint[] = [
   { date: '2025-01-01', close: 12, volume: 12000 },

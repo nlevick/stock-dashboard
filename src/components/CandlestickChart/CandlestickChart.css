@@ -13,6 +13,14 @@
   gap: 0.5rem clamp(0.875rem, 1.6vw, 1.5rem);
 }
 
+.chart-readout dt {
+  font-size: 0.8125rem;
+}
+
+.chart-readout dd {
+  font-size: 0.9375rem;
+}
+
 .stock-chart {
   display: block;
   width: 100%;

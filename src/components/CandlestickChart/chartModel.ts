@@ -2,6 +2,7 @@ import { bisectCenter, line, max, min, scaleBand, scaleLinear } from 'd3';
 
 import type { StockDataPoint } from '@/types/stock';
 
+export const CHART_WIDTH = 640;
 export const CHART_HEIGHT = 284;
 
 export function buildChartModel(

@@ -1,5 +1,6 @@
-@import '../components/CandlestickChart.css';
-@import '../components/StockTable.css';
+@import '../components/CandlestickChart/CandlestickChart.css';
+@import '../components/QuoteHeader/QuoteHeader.css';
+@import '../components/StockTable/StockTable.css';
 
 :root {
   color-scheme: dark;
@@ -223,58 +224,6 @@ button {
   padding-block: 1.125rem;
 }
 
-.quote-symbol {
-  font-size: 1.3125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.quote-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  min-width: 0;
-  gap: 0.75rem clamp(1.25rem, 3vw, 2.5rem);
-}
-
-.quote-summary {
-  min-width: 0;
-}
-
-.quote-price-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.125rem 0.875rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.quote-identity {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.quote-price {
-  font-size: clamp(2.5rem, 5vw, 3.25rem);
-  letter-spacing: -0.045em;
-  line-height: 1.05;
-  font-weight: 450;
-}
-
-.quote-change {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.quote-change[data-direction='up'] {
-  color: var(--chart-up);
-}
-
-.quote-change[data-direction='down'] {
-  color: var(--chart-down);
-}
-
 .chart-controls {
   display: flex;
   flex-wrap: wrap;
@@ -400,12 +349,6 @@ button {
   margin-block-start: 0.5rem;
 }
 
-.stock-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem clamp(1rem, 2.5vw, 2.25rem);
-}
-
 .stock-summary,
 .chart-readout {
   font-variant-numeric: tabular-nums;
@@ -415,22 +358,12 @@ button {
 .chart-readout dt {
   margin-bottom: 0.1875rem;
   color: var(--text-secondary);
-  font-size: 0.8125rem;
 }
 
 .stock-summary dd,
 .chart-readout dd {
-  font-size: 0.9375rem;
   font-weight: 500;
   overflow-wrap: anywhere;
-}
-
-.stock-summary dt {
-  font-size: 0.875rem;
-}
-
-.stock-summary dd {
-  font-size: 1.0625rem;
 }
 
 @media (max-width: 760px) {
@@ -461,10 +394,6 @@ button {
     text-align: center;
   }
 
-  .quote-summary {
-    flex-basis: 100%;
-  }
-
   .chart-controls {
     gap: 0.25rem 0.625rem;
   }
@@ -476,13 +405,6 @@ button {
 
   .stock-history {
     gap: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .stock-summary {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   }
 }
 

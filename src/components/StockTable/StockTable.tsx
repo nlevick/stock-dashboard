@@ -23,7 +23,7 @@ const columns = [
 type Column = (typeof columns)[number]['key'];
 type Direction = 'ascending' | 'descending';
 
-const pageSize = 5;
+const PAGE_SIZE = 5;
 
 export function StockTable({
   observations,
@@ -36,12 +36,12 @@ export function StockTable({
     direction: 'descending',
   });
   const [page, setPage] = useState(0);
-  const lastPage = Math.max(0, Math.ceil(observations.length / pageSize) - 1);
+  const lastPage = Math.max(0, Math.ceil(observations.length / PAGE_SIZE) - 1);
   const currentPage = Math.min(page, lastPage);
   if (currentPage !== page) setPage(currentPage);
   if (observations.length === 0) return null;
 
-  const start = currentPage * pageSize;
+  const start = currentPage * PAGE_SIZE;
   const rows = [...observations]
     .sort((left, right) => {
       const order =
@@ -50,7 +50,7 @@ export function StockTable({
           : left[sort.column] - right[sort.column];
       return sort.direction === 'ascending' ? order : -order;
     })
-    .slice(start, start + pageSize);
+    .slice(start, start + PAGE_SIZE);
 
   function sortBy(column: Column) {
     setSort({

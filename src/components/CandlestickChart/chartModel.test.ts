@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
 
-import { buildChartModel } from '@/components/chartModel';
 import type { StockDataPoint } from '@/types/stock';
+
+import { buildChartModel } from './chartModel';
 
 const flat: StockDataPoint = {
   date: '2025-03-07',

@@ -1,6 +1,7 @@
-import { StockSummary } from '@/components/StockSummary';
 import type { StockDataPoint } from '@/types/stock';
 import { formatPrice } from '@/utils/stockFormatting';
+
+import { StockSummary } from './StockSummary';
 
 interface QuoteHeaderProps {
   symbol: string;
