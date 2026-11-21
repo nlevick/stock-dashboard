@@ -27,7 +27,7 @@ interface CandlestickChartProps {
 interface ObservationSelection {
   data: readonly StockDataPoint[];
   date: string;
-  source: 'pointer' | 'keyboard';
+  source: 'pointer' | 'touch' | 'keyboard';
 }
 
 const MIN_CHART_WIDTH = 160;
@@ -99,7 +99,10 @@ export function CandlestickChart({
     ],
   ];
 
-  function handleChartPointerMove(event: PointerEvent<SVGSVGElement>) {
+  function inspectPointer(
+    event: PointerEvent<SVGSVGElement>,
+    source: 'pointer' | 'touch'
+  ) {
     const bounds = event.currentTarget.getBoundingClientRect();
     if (!hasData || bounds.width <= 0) return;
     const index = model.indexAt(
@@ -107,10 +110,10 @@ export function CandlestickChart({
     );
     const date = data[index].date;
     if (
-      observationSelection?.source !== 'pointer' ||
+      observationSelection?.source !== source ||
       observationSelection.date !== date
     ) {
-      setObservationSelection({ data, date, source: 'pointer' });
+      setObservationSelection({ data, date, source });
     }
   }
 
@@ -189,7 +192,12 @@ export function CandlestickChart({
           instructionsId={instructionsId}
           chartRef={chartRef}
           onKeyDown={handleChartKeyDown}
-          onPointerMove={handleChartPointerMove}
+          onPointerMove={(event) => inspectPointer(event, 'pointer')}
+          onPointerUp={(event) => {
+            if (event.pointerType === 'touch' && event.isPrimary) {
+              inspectPointer(event, 'touch');
+            }
+          }}
           onPointerLeave={() => {
             if (observationSelection?.source === 'pointer') {
               setObservationSelection(null);

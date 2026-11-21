@@ -22,6 +22,7 @@ interface CandlestickPlotProps {
   chartRef: RefObject<SVGSVGElement>;
   onKeyDown: KeyboardEventHandler<SVGSVGElement>;
   onPointerMove: PointerEventHandler<SVGSVGElement>;
+  onPointerUp: PointerEventHandler<SVGSVGElement>;
   onPointerLeave: PointerEventHandler<SVGSVGElement>;
 }
 
@@ -55,6 +56,7 @@ export function CandlestickPlot({
   chartRef,
   onKeyDown,
   onPointerMove,
+  onPointerUp,
   onPointerLeave,
 }: CandlestickPlotProps) {
   const { plot, center, markWidth, price, volume, dateTicks, closingLine } =
@@ -75,6 +77,7 @@ export function CandlestickPlot({
       tabIndex={firstObservation ? 0 : undefined}
       onKeyDown={onKeyDown}
       onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
     >
       {price.ticks(height < 175 ? 3 : 5).map((tick) => (

@@ -128,6 +128,40 @@ it.each([
   }
 );
 
+it('keeps a tapped observation after the touch pointer leaves the chart', async () => {
+  vi.spyOn(SVGSVGElement.prototype, 'getBoundingClientRect').mockReturnValue(
+    new DOMRect(10, 0, CHART_WIDTH, CHART_HEIGHT)
+  );
+  render(<App />);
+
+  const chart = await screen.findByRole(
+    'img',
+    { name: candleChartLabel },
+    requestWait
+  );
+  const readout = within(
+    screen.getByRole('group', { name: 'Inspected observation' })
+  );
+
+  fireEvent(
+    chart,
+    Object.assign(new MouseEvent('pointerup', { bubbles: true, clientX: 60 }), {
+      pointerType: 'touch',
+      isPrimary: true,
+    })
+  );
+  fireEvent.pointerOut(chart);
+  expect(readout.getByText('2025-01-10')).toBeTruthy();
+
+  fireEvent(
+    chart,
+    new MouseEvent('pointermove', { bubbles: true, clientX: 300 })
+  );
+  expect(readout.getByText('2025-02-12')).toBeTruthy();
+  fireEvent.pointerOut(chart);
+  expect(readout.getByText('2025-03-12')).toBeTruthy();
+});
+
 it('shows the latest 100 observations and reuses each ticker and interval independently', async () => {
   const storage = jsdom.window.localStorage;
   storage.clear();
