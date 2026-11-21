@@ -3,7 +3,6 @@ import { isStockDataPoint, parseStockData } from '@/services/parseStockData';
 import { StockApiError } from '@/types/error';
 import type { StockData, StockInterval } from '@/types/stock';
 
-const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_KEY ?? 'demo';
 const BASE_URL = 'https://www.alphavantage.co/query';
 const OBSERVATION_LIMIT = 100;
 const REQUEST_SPACING_MS = 1_050;
@@ -18,6 +17,19 @@ export const fetchStockData = async (
   interval: StockInterval = 'daily',
   signal?: AbortSignal
 ): Promise<StockData> => {
+  const { endpoint, responseKey } = series[interval];
+  if (import.meta.env.PROD) {
+    const url = `${import.meta.env.BASE_URL}data/${encodeURIComponent(symbol)}-${interval}.json`;
+    const snapshot = await fetchStockJson(url, signal);
+    const data = parseStockData(
+      isRecord(snapshot) ? snapshot[responseKey] : undefined
+    ).slice(-OBSERVATION_LIMIT);
+    if (data.length === 0) {
+      throw new StockApiError('PARSE_ERROR', 'Historical snapshot is empty');
+    }
+    return { symbol, data };
+  }
+
   const date = new Date().toISOString().slice(0, 10);
   const cacheKey =
     interval === 'daily'
@@ -38,43 +50,22 @@ export const fetchStockData = async (
   );
   if (cached) return { ...cached, data: cached.data.slice(-OBSERVATION_LIMIT) };
 
-  const { endpoint, responseKey } = series[interval];
   const params = new URLSearchParams({
     function: endpoint,
     symbol,
-    apikey: API_KEY,
+    apikey: import.meta.env.VITE_ALPHA_VANTAGE_KEY ?? 'demo',
   });
   if (interval === 'daily') params.set('outputsize', 'compact');
 
-  let response: Response;
-  try {
-    // A cold ticker can need both its daily quote and its weekly history.
-    let wait = nextRequestAt - performance.now();
-    while (wait > 0 && !signal?.aborted) {
-      await new Promise((resolve) => setTimeout(resolve, wait));
-      wait = nextRequestAt - performance.now();
-    }
-    signal?.throwIfAborted();
-    nextRequestAt = performance.now() + REQUEST_SPACING_MS;
-    response = await fetch(`${BASE_URL}?${params}`, { signal });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') throw err;
-    throw new StockApiError('NETWORK_ERROR', 'Network request failed');
+  // A cold ticker can need both its daily quote and its weekly history.
+  let wait = nextRequestAt - performance.now();
+  while (wait > 0 && !signal?.aborted) {
+    await new Promise((resolve) => setTimeout(resolve, wait));
+    wait = nextRequestAt - performance.now();
   }
-
-  if (!response.ok) {
-    throw new StockApiError(
-      'HTTP_ERROR',
-      `HTTP ${response.status}: ${response.statusText}`
-    );
-  }
-
-  let json: unknown;
-  try {
-    json = await response.json();
-  } catch {
-    throw new StockApiError('PARSE_ERROR', 'Failed to parse API response');
-  }
+  signal?.throwIfAborted();
+  nextRequestAt = performance.now() + REQUEST_SPACING_MS;
+  const json = await fetchStockJson(`${BASE_URL}?${params}`, signal);
 
   if (!isRecord(json)) {
     throw new StockApiError('PARSE_ERROR', 'Unexpected API response shape');
@@ -113,6 +104,32 @@ export const fetchStockData = async (
   if (data.length && !signal?.aborted) setCache(cacheKey, result);
   return result;
 };
+
+async function fetchStockJson(
+  url: string,
+  signal?: AbortSignal
+): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await fetch(url, { signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') throw err;
+    throw new StockApiError('NETWORK_ERROR', 'Network request failed');
+  }
+
+  if (!response.ok) {
+    throw new StockApiError(
+      'HTTP_ERROR',
+      `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    throw new StockApiError('PARSE_ERROR', 'Failed to parse API response');
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

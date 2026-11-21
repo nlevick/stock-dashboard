@@ -14,9 +14,13 @@ This project showcases:
 
 ## 🚀 Quick Start
 
+The [public demo](https://nlevick.github.io/stock-dashboard/) uses a snapshot of
+Alpha Vantage daily and weekly price history for SPY and IBIT through
+November 20, 2026. The dashboard fetches the snapshot from GitHub Pages.
+
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22.12+ or Node.js 20.19+
 - npm or yarn
 
 ### Installation
@@ -32,7 +36,7 @@ npm install
 # Get a free API key from Alpha Vantage
 # https://www.alphavantage.co/support/#api-key
 
-# Replace 'demo' in src/services/stockApi.ts with your API key
+# Set VITE_ALPHA_VANTAGE_KEY in .env.development.local for local API requests
 
 # Start development server
 npm run dev
@@ -41,6 +45,8 @@ npm run dev
 Visit `http://localhost:5173`
 
 ### Deployment to GitHub Pages
+
+The production build fetches the checked-in snapshot files from `public/data/`.
 
 ```bash
 # Build and deploy
@@ -108,15 +114,8 @@ This project demonstrates production-ready component patterns:
 - **Accessibility**: Semantic HTML and keyboard navigation
 - **Performance**: Optimized re-renders and large dataset handling
 
-## 📝 Notes
-
-- Alpha Vantage free tier: 25 API calls/day, 500 calls/minute
-- Using 'demo' API key loads IBM stock data only
-- For production use, get your own API key and add rate limiting
-
 ## 🔗 Links
 
-- [Live Demo](#) (Coming soon)
 - [Alpha Vantage API Docs](https://www.alphavantage.co/documentation/)
 
 ## 📄 License

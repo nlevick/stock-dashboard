@@ -36,23 +36,14 @@ _fill in after profiling_
 
 ## Caching Strategy
 
-**Decision:** localStorage keyed by `${symbol}-${dateString}`.
+Local development fetches from Alpha Vantage and caches validated observations
+in `localStorage` by symbol, interval, and UTC date. Entries expire after 12
+hours. A storage failure leaves the app free to fetch fresh data.
 
-**Why:**
-
-**Tradeoffs:**
-
-- Pro:
-- Pro:
-- Con:
-- Con:
-
-**What I'd do next:** IndexedDB would allow...
-
-TTL prevents stale data — without expiry you'd serve yesterday's prices forever
-try/catch on both read and write — localStorage throws in private browsing on some browsers, and on write if the 5MB quota is exceeded.
-Silent failure is correct here since the cache is an optimization, not a requirement
-cachedAt gives you observability — you can log it in DevTools to confirm caching is working during Session 7 profiling
+The GitHub Pages build fetches four static JSON files containing the 100 most
+recent daily and weekly observations for SPY and IBIT through November 20, 2026.
+The files use the Alpha Vantage time-series format and pass through the same
+parser as local API responses. Browsers can cache the files over HTTP.
 
 ---
 
