@@ -66,12 +66,13 @@ export function CandlestickPlot({
     <svg
       ref={chartRef}
       className="stock-chart"
-      role="img"
-      aria-label={chartLabels[view]}
-      aria-describedby={instructionsId}
+      role={firstObservation ? 'img' : undefined}
+      aria-hidden={!firstObservation || undefined}
+      aria-label={firstObservation ? chartLabels[view] : undefined}
+      aria-describedby={firstObservation ? instructionsId : undefined}
       viewBox={`0 0 ${width} ${height}`}
       height={height}
-      tabIndex={0}
+      tabIndex={firstObservation ? 0 : undefined}
       onKeyDown={onKeyDown}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}

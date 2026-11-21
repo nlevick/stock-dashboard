@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: dark;
+  scrollbar-gutter: stable;
   --bg-primary: #0e1623;
   --bg-secondary: #172335;
   --text-primary: #eef4fb;
@@ -84,7 +85,9 @@ button {
 }
 
 .visually-hidden,
-.chart-instructions:not(.stock-chart:focus-visible + .chart-instructions) {
+.chart-instructions:not(
+  .chart-plot:has(.stock-chart:focus-visible) + .chart-instructions
+) {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -220,6 +223,7 @@ button {
 }
 
 .price-history {
+  container-type: inline-size;
   row-gap: 0.125rem;
   padding-block: 1.125rem;
 }
@@ -235,22 +239,33 @@ button {
 @media (min-width: 1080px) {
   .price-history {
     grid-template-columns: minmax(0, 1fr) auto;
-    /* Fill the space beside the controls as soon as the chart has a readout. */
-    grid-auto-flow: row dense;
+    grid-template-areas:
+      'quote quote'
+      'observation controls'
+      'plot plot'
+      'instructions instructions';
     column-gap: 1.5rem;
     align-items: center;
   }
 
-  .price-history > * {
-    grid-column: 1 / -1;
+  .price-history > .quote-header {
+    grid-area: quote;
   }
 
   .price-history > .chart-controls {
-    grid-column: 2;
+    grid-area: controls;
   }
 
   .price-history > .chart-observation {
-    grid-column: 1;
+    grid-area: observation;
+  }
+
+  .price-history > .chart-plot {
+    grid-area: plot;
+  }
+
+  .price-history > .chart-instructions {
+    grid-area: instructions;
   }
 
   .price-history > .chart-controls,
@@ -302,8 +317,8 @@ button {
   color: var(--accent);
 }
 
-.chart-intervals button[aria-pressed='true'] {
-  font-weight: 600;
+.chart-intervals button {
+  min-inline-size: 4rem;
 }
 
 .chart-views button {
@@ -343,10 +358,6 @@ button {
 
 .data-status [role='alert'] {
   color: var(--chart-down);
-}
-
-.price-history > .data-status {
-  margin-block-start: 0.5rem;
 }
 
 .stock-summary,

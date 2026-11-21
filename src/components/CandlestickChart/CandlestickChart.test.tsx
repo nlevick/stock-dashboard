@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
@@ -194,12 +195,11 @@ it('shows the latest 100 observations and reuses each ticker and interval indepe
   expect(fetch).toHaveBeenCalledTimes(1);
 
   fireEvent.click(screen.getByRole('button', { name: 'Weekly' }));
-  const weekly = await screen.findByRole(
-    'img',
-    { name: barLabel },
+  await waitFor(
+    () => expect(volumeMarks(candleChart, 'Weekly')).toHaveLength(100),
     requestWait
   );
-  expect(volumeMarks(weekly, 'Weekly')).toHaveLength(100);
+  expect(screen.getByRole('img', { name: barLabel })).toBe(candleChart);
   expect(
     within(
       screen.getByRole('group', { name: 'Inspected observation' })
@@ -212,13 +212,15 @@ it('shows the latest 100 observations and reuses each ticker and interval indepe
   ).toBeTruthy();
 
   fireEvent.click(within(ticker).getByRole('button', { name: 'IBIT' }));
-  await screen.findByRole('img', { name: barLabel }, requestWait);
-  const ibitQuote = await screen.findByRole(
-    'group',
-    { name: 'Latest close' },
+  await waitFor(
+    () =>
+      expect(
+        within(screen.getByRole('group', { name: 'Latest close' })).getByText(
+          '$25.00'
+        )
+      ).toBeTruthy(),
     requestWait
   );
-  expect(within(ibitQuote).getByText('$25.00')).toBeTruthy();
   expect(
     screen.getByRole('button', { name: 'Weekly', pressed: true })
   ).toBeTruthy();
@@ -227,11 +229,17 @@ it('shows the latest 100 observations and reuses each ticker and interval indepe
   ).toBeTruthy();
 
   fireEvent.click(screen.getByRole('button', { name: 'Daily' }));
-  await screen.findByRole('img', { name: barLabel }, requestWait);
+  await waitFor(
+    () => expect(volumeMarks(candleChart, 'Daily')).toHaveLength(100),
+    requestWait
+  );
   fireEvent.click(within(ticker).getByRole('button', { name: 'SPY' }));
-  await screen.findByRole('img', { name: barLabel }, requestWait);
+  await screen.findByRole('heading', { name: 'SPY' }, requestWait);
   fireEvent.click(screen.getByRole('button', { name: 'Weekly' }));
-  await screen.findByRole('img', { name: barLabel }, requestWait);
+  await waitFor(
+    () => expect(volumeMarks(candleChart, 'Weekly')).toHaveLength(100),
+    requestWait
+  );
 
   expect(
     fetch.mock.calls

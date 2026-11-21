@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type { StockDataPoint } from '@/types/stock';
 import { formatPrice } from '@/utils/stockFormatting';
 
@@ -5,8 +7,9 @@ import { StockSummary } from './StockSummary';
 
 interface QuoteHeaderProps {
   symbol: string;
-  latest: StockDataPoint;
+  latest?: StockDataPoint;
   previous?: StockDataPoint;
+  status?: ReactNode;
 }
 
 const signedUsd = new Intl.NumberFormat('en-US', {
@@ -21,19 +24,32 @@ const signedPercent = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
-export function QuoteHeader({ symbol, latest, previous }: QuoteHeaderProps) {
-  const change = previous ? latest.close - previous.close : null;
+export function QuoteHeader({
+  symbol,
+  latest,
+  previous,
+  status,
+}: QuoteHeaderProps) {
+  const change = latest && previous ? latest.close - previous.close : null;
   const percent =
     change !== null && previous && previous.close !== 0
       ? change / previous.close
       : null;
 
   return (
-    <div className="quote-header" role="group" aria-label="Latest close">
+    <div
+      className="quote-header"
+      role={latest ? 'group' : undefined}
+      aria-label={latest ? 'Latest close' : undefined}
+    >
       <div className="quote-identity">
         <h2 className="quote-symbol">{symbol}</h2>
         <div className="quote-price-line">
-          <p className="quote-price">{formatPrice(latest.close)}</p>
+          {status || (
+            <p className="quote-price">
+              {latest ? formatPrice(latest.close) : '—'}
+            </p>
+          )}
           {change !== null && (
             <p
               className="quote-change"

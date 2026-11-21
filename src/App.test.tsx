@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -19,7 +20,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-it('updates the latest-session quote and statistics with the symbol and keeps them fixed during chart inspection', async () => {
+it('replaces the ticker data in place and keeps the quote fixed during chart inspection', async () => {
   const spy: StockData = {
     symbol: 'SPY',
     data: [
@@ -62,8 +63,12 @@ it('updates the latest-session quote and statistics with the symbol and keeps th
       },
     ],
   };
-  vi.mocked(fetchStockData).mockImplementation(async (symbol) =>
-    symbol === 'SPY' ? spy : ibit
+  let resolveIbit!: (data: StockData) => void;
+  const ibitRequest = new Promise<StockData>((resolve) => {
+    resolveIbit = resolve;
+  });
+  vi.mocked(fetchStockData).mockImplementation((symbol) =>
+    symbol === 'SPY' ? Promise.resolve(spy) : ibitRequest
   );
 
   render(<App />);
@@ -92,11 +97,23 @@ it('updates the latest-session quote and statistics with the symbol and keeps th
     '8,000',
   ]);
 
-  fireEvent.click(screen.getByRole('button', { name: /IBIT/ }));
-  expect(screen.queryByRole('group', { name: 'Latest close' })).toBeNull();
-  const chart = await screen.findByRole('img', {
+  const chart = screen.getByRole('img', {
     name: 'Candlestick price and volume chart',
   });
+  const table = screen.getByRole('table', { name: 'Historical prices' });
+  fireEvent.click(screen.getByRole('button', { name: 'IBIT' }));
+  expect(screen.getByText('Loading...', { exact: true })).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'SPY' })).toBeTruthy();
+  expect(within(table).getByText('Mar 11, 2025')).toBeTruthy();
+
+  await act(async () => resolveIbit(ibit));
+
+  expect(screen.getByRole('heading', { name: 'IBIT' })).toBeTruthy();
+  expect(within(table).getByText('Mar 13, 2025')).toBeTruthy();
+  expect(
+    screen.getByRole('img', { name: 'Candlestick price and volume chart' })
+  ).toBe(chart);
+  expect(screen.getByRole('table', { name: 'Historical prices' })).toBe(table);
   const ibitStats = ['$41.00', '$37.00 – $42.00', '15,000'];
   expectQuote('$38.00', '-$2.00 (-5.00%)', 'Mar 13, 2025', ibitStats);
 
@@ -154,7 +171,7 @@ it.each([
   }
 );
 
-it('shows an empty-history message without mounting the chart or table', async () => {
+it('shows an empty-history message and keeps the chart and table panels in place', async () => {
   vi.mocked(fetchStockData).mockImplementation(async (symbol) => ({
     symbol,
     data: [],
@@ -166,6 +183,9 @@ it('shows an empty-history message without mounting the chart or table', async (
     await screen.findByText('No daily observations returned.')
   ).toBeTruthy();
   expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
+  expect(
+    screen.getByRole('heading', { name: 'Historical prices' })
+  ).toBeTruthy();
   expect(
     screen.queryByRole('img', { name: 'Candlestick price and volume chart' })
   ).toBeNull();

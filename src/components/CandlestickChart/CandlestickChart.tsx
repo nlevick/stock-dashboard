@@ -6,6 +6,7 @@ import {
   useState,
   type KeyboardEvent,
   type PointerEvent,
+  type ReactNode,
 } from 'react';
 
 import type { StockDataPoint, StockInterval } from '@/types/stock';
@@ -19,9 +20,12 @@ interface CandlestickChartProps {
   data: readonly StockDataPoint[];
   interval: StockInterval;
   view: ChartView;
+  loading?: boolean;
+  status?: ReactNode;
 }
 
 interface ObservationSelection {
+  data: readonly StockDataPoint[];
   date: string;
   source: 'pointer' | 'keyboard';
 }
@@ -33,6 +37,8 @@ export function CandlestickChart({
   data,
   interval,
   view,
+  loading = false,
+  status,
 }: CandlestickChartProps) {
   const chartRef = useRef<SVGSVGElement>(null);
   const instructionsId = useId();
@@ -42,6 +48,9 @@ export function CandlestickChart({
   });
   const [observationSelection, setObservationSelection] =
     useState<ObservationSelection | null>(null);
+  if (observationSelection && observationSelection.data !== data) {
+    setObservationSelection(null);
+  }
   const model = useMemo(
     () => buildChartModel(data, width, height),
     [data, width, height]
@@ -77,21 +86,22 @@ export function CandlestickChart({
     const observer = new ResizeObserver(measureChart);
     observer.observe(chart);
     return () => observer.disconnect();
-  }, [hasData]);
-
-  if (!readoutObservation) return <p>No observations for this range.</p>;
+  }, []);
 
   const fields = [
-    ['Open', formatPrice(readoutObservation.open)],
-    ['High', formatPrice(readoutObservation.high)],
-    ['Low', formatPrice(readoutObservation.low)],
-    ['Close', formatPrice(readoutObservation.close)],
-    ['Volume', formatShareCount(readoutObservation.volume)],
+    ['Open', readoutObservation && formatPrice(readoutObservation.open)],
+    ['High', readoutObservation && formatPrice(readoutObservation.high)],
+    ['Low', readoutObservation && formatPrice(readoutObservation.low)],
+    ['Close', readoutObservation && formatPrice(readoutObservation.close)],
+    [
+      'Volume',
+      readoutObservation && formatShareCount(readoutObservation.volume),
+    ],
   ];
 
   function handleChartPointerMove(event: PointerEvent<SVGSVGElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
-    if (bounds.width <= 0) return;
+    if (!hasData || bounds.width <= 0) return;
     const index = model.indexAt(
       ((event.clientX - bounds.left) * width) / bounds.width
     );
@@ -100,11 +110,12 @@ export function CandlestickChart({
       observationSelection?.source !== 'pointer' ||
       observationSelection.date !== date
     ) {
-      setObservationSelection({ date, source: 'pointer' });
+      setObservationSelection({ data, date, source: 'pointer' });
     }
   }
 
   function handleChartKeyDown(event: KeyboardEvent<SVGSVGElement>) {
+    if (!hasData) return;
     const previous = selectedIndex < 0 ? data.length - 1 : selectedIndex;
     let index: number;
 
@@ -126,7 +137,11 @@ export function CandlestickChart({
     }
 
     event.preventDefault();
-    setObservationSelection({ date: data[index].date, source: 'keyboard' });
+    setObservationSelection({
+      data,
+      date: data[index].date,
+      source: 'keyboard',
+    });
   }
 
   return (
@@ -140,15 +155,19 @@ export function CandlestickChart({
           <div>
             <dt>Date</dt>
             <dd>
-              <time dateTime={readoutObservation.date}>
-                {readoutObservation.date}
-              </time>
+              {readoutObservation ? (
+                <time dateTime={readoutObservation.date}>
+                  {readoutObservation.date}
+                </time>
+              ) : (
+                '—'
+              )}
             </dd>
           </div>
           {fields.map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
-              <dd>{value}</dd>
+              <dd>{value ?? '—'}</dd>
             </div>
           ))}
         </dl>
@@ -158,25 +177,28 @@ export function CandlestickChart({
           selectedObservation &&
           `${selectedObservation.date}. ${fields.map(([label, value]) => `${label} ${value}`).join(', ')}.`}
       </p>
-      <CandlestickPlot
-        data={data}
-        interval={interval}
-        view={view}
-        width={width}
-        height={height}
-        model={model}
-        selectedObservation={selectedObservation}
-        instructionsId={instructionsId}
-        chartRef={chartRef}
-        onKeyDown={handleChartKeyDown}
-        onPointerMove={handleChartPointerMove}
-        onPointerLeave={() => {
-          if (observationSelection?.source === 'pointer') {
-            setObservationSelection(null);
-          }
-        }}
-      />
-      <p id={instructionsId} className="chart-instructions">
+      <div className="chart-plot" data-empty={!hasData} data-loading={loading}>
+        <CandlestickPlot
+          data={data}
+          interval={interval}
+          view={view}
+          width={width}
+          height={height}
+          model={model}
+          selectedObservation={selectedObservation}
+          instructionsId={instructionsId}
+          chartRef={chartRef}
+          onKeyDown={handleChartKeyDown}
+          onPointerMove={handleChartPointerMove}
+          onPointerLeave={() => {
+            if (observationSelection?.source === 'pointer') {
+              setObservationSelection(null);
+            }
+          }}
+        />
+        <div className="chart-status">{status}</div>
+      </div>
+      <p id={instructionsId} className="chart-instructions" hidden={!hasData}>
         Use the arrow keys to inspect {interval} prices. Home and End jump to
         the first and last observation.
       </p>

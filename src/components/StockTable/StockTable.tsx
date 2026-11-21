@@ -24,23 +24,33 @@ type Column = (typeof columns)[number]['key'];
 type Direction = 'ascending' | 'descending';
 
 const PAGE_SIZE = 5;
+const defaultSort: { column: Column; direction: Direction } = {
+  column: 'date',
+  direction: 'descending',
+};
 
 export function StockTable({
   observations,
+  series,
 }: {
   observations: readonly StockDataPoint[];
+  series?: string;
 }) {
   const heading = useId();
-  const [sort, setSort] = useState<{ column: Column; direction: Direction }>({
-    column: 'date',
-    direction: 'descending',
-  });
+  const [currentSeries, setCurrentSeries] = useState(series);
+  const [sort, setSort] = useState(defaultSort);
   const [page, setPage] = useState(0);
   const lastPage = Math.max(0, Math.ceil(observations.length / PAGE_SIZE) - 1);
   const currentPage = Math.min(page, lastPage);
-  if (currentPage !== page) setPage(currentPage);
-  if (observations.length === 0) return null;
+  if (series !== currentSeries) {
+    setCurrentSeries(series);
+    setSort(defaultSort);
+    setPage(0);
+  } else if (currentPage !== page) {
+    setPage(currentPage);
+  }
 
+  const hasObservations = observations.length > 0;
   const start = currentPage * PAGE_SIZE;
   const rows = [...observations]
     .sort((left, right) => {
@@ -69,13 +79,18 @@ export function StockTable({
   }
 
   return (
-    <section className="stock-history glass-panel" aria-labelledby={heading}>
+    <section
+      className="stock-history glass-panel"
+      aria-labelledby={heading}
+      data-empty={!hasObservations}
+    >
       <h2 id={heading}>Historical prices</h2>
       <div
         className="stock-table-scroll"
         role="region"
         aria-label="Scrollable observations"
-        tabIndex={0}
+        tabIndex={hasObservations ? 0 : undefined}
+        aria-hidden={!hasObservations || undefined}
       >
         <table aria-labelledby={heading}>
           <thead>
@@ -86,14 +101,16 @@ export function StockTable({
                   scope="col"
                   aria-sort={sort.column === key ? sort.direction : undefined}
                 >
-                  <button type="button" onClick={() => sortBy(key)}>
+                  <button
+                    type="button"
+                    disabled={!hasObservations}
+                    onClick={() => sortBy(key)}
+                  >
                     {label}
-                    {sort.column === key && (
-                      <span aria-hidden="true">
-                        {' '}
-                        {sort.direction === 'ascending' ? '↑' : '↓'}
-                      </span>
-                    )}
+                    <span className="stock-table-sort-arrow" aria-hidden="true">
+                      {sort.column === key &&
+                        (sort.direction === 'ascending' ? '↑' : '↓')}
+                    </span>
                   </button>
                 </th>
               ))}
@@ -113,10 +130,24 @@ export function StockTable({
                 <td>{formatShareCount(observation.volume)}</td>
               </tr>
             ))}
+            {rows.length < PAGE_SIZE && (
+              <tr
+                aria-hidden="true"
+                className="stock-table-spacer"
+                style={{
+                  height: `calc(var(--stock-row-height) * ${PAGE_SIZE - rows.length})`,
+                }}
+              >
+                <td colSpan={columns.length} />
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-      <div className="stock-table-footer">
+      <div
+        className="stock-table-footer"
+        aria-hidden={!hasObservations || undefined}
+      >
         <p role="status">
           {start + 1}–{start + rows.length} of {observations.length}
           {' observations'}
@@ -130,6 +161,7 @@ export function StockTable({
             type="button"
             aria-label="Previous page"
             aria-disabled={currentPage === 0}
+            disabled={!hasObservations}
             onClick={() => movePage(-1)}
           >
             ←
@@ -141,6 +173,7 @@ export function StockTable({
             type="button"
             aria-label="Next page"
             aria-disabled={currentPage === lastPage}
+            disabled={!hasObservations}
             onClick={() => movePage(1)}
           >
             →

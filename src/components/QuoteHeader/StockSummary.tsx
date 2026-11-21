@@ -7,7 +7,11 @@ import {
   formatShareCount,
 } from '@/utils/stockFormatting';
 
-export function StockSummary({ observation }: { observation: StockDataPoint }) {
+export function StockSummary({
+  observation,
+}: {
+  observation?: StockDataPoint;
+}) {
   const heading = useId();
 
   return (
@@ -19,24 +23,30 @@ export function StockSummary({ observation }: { observation: StockDataPoint }) {
         <div>
           <dt>At close</dt>
           <dd>
-            <time dateTime={observation.date}>
-              {formatObservationDate(observation.date)}
-            </time>
+            {observation ? (
+              <time dateTime={observation.date}>
+                {formatObservationDate(observation.date)}
+              </time>
+            ) : (
+              '—'
+            )}
           </dd>
         </div>
         <div>
           <dt>Open</dt>
-          <dd>{formatPrice(observation.open)}</dd>
+          <dd>{observation ? formatPrice(observation.open) : '—'}</dd>
         </div>
         <div>
           <dt>Day range</dt>
           <dd>
-            {formatPrice(observation.low)} – {formatPrice(observation.high)}
+            {observation
+              ? `${formatPrice(observation.low)} – ${formatPrice(observation.high)}`
+              : '—'}
           </dd>
         </div>
         <div>
           <dt>Volume</dt>
-          <dd>{formatShareCount(observation.volume)}</dd>
+          <dd>{observation ? formatShareCount(observation.volume) : '—'}</dd>
         </div>
       </dl>
     </div>

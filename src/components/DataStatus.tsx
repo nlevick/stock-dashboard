@@ -4,7 +4,6 @@ interface DataStatusProps {
   loading: boolean;
   error: ApiError | null;
   empty: boolean;
-  loadingMessage: string;
   emptyMessage: string;
   errorLabel: string;
   retry: () => void;
@@ -15,7 +14,6 @@ export function DataStatus({
   loading,
   error,
   empty,
-  loadingMessage,
   emptyMessage,
   errorLabel,
   retry,
@@ -24,7 +22,7 @@ export function DataStatus({
   if (loading) {
     return (
       <p className="data-status data-status-loading" role="status">
-        {loadingMessage}
+        Loading...
       </p>
     );
   }

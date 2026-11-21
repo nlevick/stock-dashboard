@@ -8,9 +8,13 @@
 }
 
 .chart-readout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem clamp(0.875rem, 1.6vw, 1.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr)) minmax(
+      0,
+      1.65fr
+    );
+  gap: 0.5rem clamp(0.375rem, 1cqi, 1rem);
+  max-inline-size: 35rem;
 }
 
 .chart-readout dt {
@@ -19,6 +23,47 @@
 
 .chart-readout dd {
   font-size: 0.9375rem;
+}
+
+.chart-plot {
+  position: relative;
+}
+
+.chart-plot[data-empty='true'] {
+  border-radius: 0.5rem;
+  background: var(--control-surface);
+}
+
+.chart-plot[data-empty='true'] .stock-chart {
+  visibility: hidden;
+}
+
+.chart-plot[data-loading='true'] .stock-chart {
+  opacity: 0.5;
+}
+
+.chart-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+.chart-status .data-status {
+  justify-content: center;
+  text-align: center;
+}
+
+.chart-status .data-status-loading {
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.375rem;
+  background: var(--bg-secondary);
+}
+
+.chart-status button {
+  pointer-events: auto;
 }
 
 .stock-chart {
@@ -86,9 +131,10 @@
   }
 }
 
-@media (max-width: 480px) {
+@container (max-width: 31rem) {
   .chart-readout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.35fr);
+    column-gap: 0.625rem;
+    max-inline-size: 26rem;
   }
 }
