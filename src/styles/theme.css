@@ -125,7 +125,6 @@ button {
   background: transparent;
   color: var(--accent);
   font-size: 0.8125rem;
-  cursor: pointer;
 }
 
 .theme-toggle {
@@ -286,6 +285,11 @@ button {
 .stock-table-pagination button {
   color: var(--text-secondary);
   border: 0;
+}
+
+.ui-button:enabled,
+.chart-controls button,
+.stock-table-pagination button {
   cursor: pointer;
 }
 

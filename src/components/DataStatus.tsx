@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button';
 import type { ApiError } from '@/types/error';
 
 interface DataStatusProps {
@@ -33,9 +34,9 @@ export function DataStatus({
       <p role={error ? 'alert' : 'status'}>
         {error ? `${errorLabel}. ${error.message}` : emptyMessage}
       </p>
-      <button className="dashboard-button" type="button" onClick={retry}>
+      <Button className="dashboard-button" onClick={retry}>
         {retryLabel}
-      </button>
+      </Button>
     </div>
   );
 }

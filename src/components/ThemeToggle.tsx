@@ -1,5 +1,6 @@
 import { MoonIcon } from '@/components/icons/MoonIcon';
 import { SunIcon } from '@/components/icons/SunIcon';
+import { Button } from '@/components/ui/Button';
 import { THEME } from '@/hooks/useTheme';
 
 interface ThemeToggleProps {
@@ -12,14 +13,13 @@ export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
   const label = isDark ? 'Light theme' : 'Dark theme';
 
   return (
-    <button
+    <Button
       className="theme-toggle"
-      type="button"
       aria-label={label}
       title={label}
       onClick={onToggle}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
-    </button>
+    </Button>
   );
 }
