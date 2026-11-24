@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -51,6 +52,8 @@ it('sorts dates across years and numeric fields in both directions', () => {
     'Jan 2, 2025',
     'Jan 1, 2025',
     'Dec 30, 2024',
+    'Dec 10, 2024',
+    'Dec 2, 2024',
   ]);
   fireEvent.click(table.getByRole('button', { name: 'Date' }));
   expect(
@@ -62,6 +65,8 @@ it('sorts dates across years and numeric fields in both directions', () => {
     'Dec 30, 2024',
     'Jan 1, 2025',
     'Jan 2, 2025',
+    'Jan 3, 2025',
+    'Jan 4, 2025',
   ]);
 
   fireEvent.click(table.getByRole('button', { name: 'Close' }));
@@ -77,6 +82,8 @@ it('sorts dates across years and numeric fields in both directions', () => {
     '$21.00',
     '$12.00',
     '$9.00',
+    '$3.00',
+    '$2.00',
   ]);
   fireEvent.click(table.getByRole('button', { name: 'Close' }));
   expect(
@@ -88,6 +95,8 @@ it('sorts dates across years and numeric fields in both directions', () => {
     '$9.00',
     '$12.00',
     '$21.00',
+    '$32.00',
+    '$100.00',
   ]);
 });
 
@@ -125,40 +134,91 @@ it('activates the sorted observation by date button and by price cell', () => {
   );
 });
 
-it('paginates, then resets an invalid page when the observations shrink', () => {
-  const { rerender } = render(<StockTable observations={observations} />);
-  const previous = screen.getByRole<HTMLButtonElement>('button', {
-    name: 'Previous page',
-  });
-  const next = screen.getByRole<HTMLButtonElement>('button', {
-    name: 'Next page',
-  });
-  const dates = () =>
-    screen.getAllByRole('rowheader').map((cell) => cell.textContent);
+it('renders the full series and updates the rows and count when it shrinks', () => {
+  const fullSeries = Array.from({ length: 100 }, (_, index) => ({
+    ...observations[0],
+    date: new Date(Date.UTC(2025, 0, index + 1)).toISOString().slice(0, 10),
+  }));
+  const { rerender } = render(<StockTable observations={fullSeries} />);
+  const table = within(
+    screen.getByRole('table', { name: 'Historical prices' })
+  );
 
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
-  expect(previous.getAttribute('aria-disabled')).toBe('true');
-  next.focus();
-  fireEvent.click(next);
-  expect(document.activeElement).toBe(next);
-  expect(dates()).toEqual(['Dec 10, 2024', 'Dec 2, 2024']);
-  expect(screen.getByRole('status').textContent).toBe('6–7 of 7');
-  expect(next.getAttribute('aria-disabled')).toBe('true');
-  fireEvent.click(next);
-  expect(screen.getByRole('status').textContent).toBe('6–7 of 7');
-  previous.focus();
-  fireEvent.click(previous);
-  expect(document.activeElement).toBe(previous);
-  fireEvent.click(previous);
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
-  fireEvent.click(next);
-
+  expect(table.getAllByRole('rowheader')).toHaveLength(100);
+  expect(screen.getByRole('status').textContent).toBe('100 observations');
   rerender(<StockTable observations={observations.slice(0, 2)} />);
-  expect(dates()).toEqual(['Jan 1, 2025', 'Dec 10, 2024']);
-  expect(screen.getByRole('status').textContent).toBe('1–2 of 2');
-  expect(previous.getAttribute('aria-disabled')).toBe('true');
-  expect(next.getAttribute('aria-disabled')).toBe('true');
-
-  rerender(<StockTable observations={observations} />);
-  expect(screen.getByRole('status').textContent).toBe('1–5 of 7');
+  expect(
+    table.getAllByRole('rowheader').map((cell) => cell.textContent)
+  ).toEqual(['Jan 1, 2025', 'Dec 10, 2024']);
+  expect(screen.getByRole('status').textContent).toBe('2 observations');
 });
+
+it.each([
+  { replacement: 'keeps the focused date', next: observations.slice(1) },
+  {
+    replacement: 'drops the focused date',
+    next: observations.filter(({ date }) => date !== '2024-12-02'),
+  },
+  { replacement: 'has no dates', next: [] },
+])(
+  'resets scroll and keeps focus visible when the new series $replacement',
+  ({ next }) => {
+    const onObservationSelect = () => undefined;
+    const { rerender } = render(
+      <StockTable
+        observations={observations}
+        series="SPY-daily"
+        onObservationSelect={onObservationSelect}
+      />
+    );
+    const scrollRegion = screen.getByRole('region', {
+      name: 'Scrollable observations',
+    });
+    act(() => {
+      within(scrollRegion).getByRole('button', { name: 'Dec 2, 2024' }).focus();
+    });
+    scrollRegion.scrollTop = 50;
+
+    rerender(
+      <StockTable
+        observations={next}
+        series="SPY-weekly"
+        onObservationSelect={onObservationSelect}
+      />
+    );
+
+    const focusTarget = next.length
+      ? scrollRegion
+      : screen.getByRole('heading', { name: 'Historical prices' });
+    expect(document.activeElement).toBe(focusTarget);
+    expect(scrollRegion.scrollTop).toBe(0);
+  }
+);
+
+it.each([
+  { control: 'scroll region', nextSeries: 'IBIT-daily' },
+  { control: 'sort button', nextSeries: 'SPY-weekly' },
+])(
+  'recovers focus from the $control when the table becomes empty',
+  ({ control, nextSeries }) => {
+    const { rerender } = render(
+      <StockTable observations={observations} series="SPY-daily" />
+    );
+    const scrollRegion = screen.getByRole('region', {
+      name: 'Scrollable observations',
+    });
+    const focused =
+      control === 'scroll region'
+        ? scrollRegion
+        : within(scrollRegion).getByRole('button', { name: 'Close' });
+    act(() => focused.focus());
+
+    rerender(<StockTable observations={observations} series="SPY-weekly" />);
+    expect(document.activeElement).toBe(focused);
+
+    rerender(<StockTable observations={[]} series={nextSeries} />);
+    expect(document.activeElement).toBe(
+      screen.getByRole('heading', { name: 'Historical prices' })
+    );
+  }
+);
