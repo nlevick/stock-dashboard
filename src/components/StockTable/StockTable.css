@@ -63,6 +63,21 @@
   background: var(--row-surface);
 }
 
+.stock-history tbody tr:has(.stock-table-date) {
+  cursor: pointer;
+}
+
+.stock-history tbody tr:has(.stock-table-date[aria-current='true']) {
+  background: var(--selected-surface);
+}
+
+.stock-table-date {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
 .stock-table-spacer {
   visibility: hidden;
 }

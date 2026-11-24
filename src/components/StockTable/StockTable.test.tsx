@@ -7,7 +7,7 @@ import {
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import type { StockDataPoint } from '@/types/stock';
 
 import { StockTable } from './StockTable';
@@ -89,6 +89,40 @@ it('sorts dates across years and numeric fields in both directions', () => {
     '$12.00',
     '$21.00',
   ]);
+});
+
+it('activates the sorted observation by date button and by price cell', () => {
+  const onObservationSelect = vi.fn();
+  const { rerender } = render(
+    <StockTable
+      observations={observations}
+      onObservationSelect={onObservationSelect}
+    />
+  );
+  const table = within(
+    screen.getByRole('table', { name: 'Historical prices' })
+  );
+  fireEvent.click(table.getByRole('button', { name: 'Close' }));
+
+  const dateButton = table.getByRole('button', { name: 'Jan 2, 2025' });
+  fireEvent.click(dateButton);
+  const row = table.getByRole('row', { name: /^Jan 2, 2025 / });
+  fireEvent.click(within(row).getByRole('cell', { name: '$101.00' }));
+  expect(onObservationSelect.mock.calls).toEqual([
+    ['2025-01-02'],
+    ['2025-01-02'],
+  ]);
+
+  rerender(
+    <StockTable
+      observations={observations}
+      onObservationSelect={onObservationSelect}
+      selectedDate="2025-01-02"
+    />
+  );
+  expect(table.getByRole('button', { current: true }).textContent).toBe(
+    'Jan 2, 2025'
+  );
 });
 
 it('paginates, then resets an invalid page when the observations shrink', () => {

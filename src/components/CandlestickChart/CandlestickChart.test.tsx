@@ -9,41 +9,44 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import App from '@/App/App';
 
+import { CandlestickChart } from './CandlestickChart';
 import { CHART_HEIGHT, CHART_WIDTH } from './chartModel';
 
 const requestWait = { timeout: 2_500 };
 const candleChartLabel = 'Candlestick price and volume chart';
+const observations = [
+  { date: '2025-01-10', open: 11, high: 13, low: 10, close: 12, volume: 7000 },
+  { date: '2025-02-12', open: 12, high: 15, low: 11, close: 14, volume: 8000 },
+  { date: '2025-03-12', open: 14, high: 16, low: 13, close: 15, volume: 9000 },
+];
 
-beforeEach(() => {
+function stubDailyResponse() {
   vi.stubGlobal('localStorage', undefined);
-  const days = [
-    ['2025-03-12', 14, 16, 13, 15, 9000],
-    ['2025-02-12', 12, 15, 11, 14, 8000],
-    ['2025-01-10', 11, 13, 10, 12, 7000],
-  ] as const;
   vi.stubGlobal(
     'fetch',
     vi.fn().mockImplementation(async () =>
       Response.json({
         'Time Series (Daily)': Object.fromEntries(
-          days.map(([date, open, high, low, close, volume]) => [
-            date,
-            {
-              '1. open': String(open),
-              '2. high': String(high),
-              '3. low': String(low),
-              '4. close': String(close),
-              '5. volume': String(volume),
-            },
-          ])
+          [...observations]
+            .reverse()
+            .map(({ date, open, high, low, close, volume }) => [
+              date,
+              {
+                '1. open': String(open),
+                '2. high': String(high),
+                '3. low': String(low),
+                '4. close': String(close),
+                '5. volume': String(volume),
+              },
+            ])
         ),
       })
     )
   );
-});
+}
 
 afterEach(() => {
   cleanup();
@@ -52,6 +55,7 @@ afterEach(() => {
 });
 
 it('measures the chart on mount without ResizeObserver', async () => {
+  stubDailyResponse();
   vi.stubGlobal('ResizeObserver', undefined);
   vi.spyOn(SVGSVGElement.prototype, 'getBoundingClientRect').mockReturnValue(
     new DOMRect(0, 0, 480, 200)
@@ -67,6 +71,45 @@ it('measures the chart on mount without ResizeObserver', async () => {
   expect(chart.getAttribute('viewBox')).toBe('0 0 480 200');
 });
 
+it('restores the pinned crosshair and readout when the pointer leaves', () => {
+  vi.spyOn(SVGSVGElement.prototype, 'getBoundingClientRect').mockReturnValue(
+    new DOMRect(10, 0, CHART_WIDTH, CHART_HEIGHT)
+  );
+  render(
+    <CandlestickChart
+      data={observations}
+      interval="daily"
+      view="candles"
+      tablePin={{ date: '2025-01-10' }}
+    />
+  );
+  const chart = screen.getByRole('img', { name: candleChartLabel });
+  const readout = within(
+    screen.getByRole('group', { name: 'Inspected observation' })
+  );
+  const wicks = chart.querySelectorAll('.chart-candle line');
+  const wickX = (index: number) => wicks[index].getAttribute('x1');
+  const crosshairX = () =>
+    chart.querySelector('.chart-crosshair')?.getAttribute('x1');
+
+  expect(readout.getByText('2025-01-10')).toBeTruthy();
+  expect(crosshairX()).toBe(wickX(0));
+
+  fireEvent(
+    chart,
+    new MouseEvent('pointermove', {
+      bubbles: true,
+      clientX: 10 + Number(wickX(1)),
+    })
+  );
+  expect(readout.getByText('2025-02-12')).toBeTruthy();
+  expect(crosshairX()).toBe(wickX(1));
+
+  fireEvent.pointerOut(chart);
+  expect(readout.getByText('2025-01-10')).toBeTruthy();
+  expect(crosshairX()).toBe(wickX(0));
+});
+
 it.each([
   ['Candles', candleChartLabel],
   ['Bars', 'OHLC price and volume bar chart'],
@@ -74,6 +117,7 @@ it.each([
 ])(
   'inspects the same OHLCV with the pointer and keys in the %s view',
   async (view, chartLabel) => {
+    stubDailyResponse();
     render(<App />);
     await screen.findByRole('img', { name: candleChartLabel }, requestWait);
     fireEvent.click(screen.getByRole('button', { name: view }));
@@ -129,6 +173,7 @@ it.each([
 );
 
 it('keeps a tapped observation after the touch pointer leaves the chart', async () => {
+  stubDailyResponse();
   vi.spyOn(SVGSVGElement.prototype, 'getBoundingClientRect').mockReturnValue(
     new DOMRect(10, 0, CHART_WIDTH, CHART_HEIGHT)
   );
@@ -291,6 +336,7 @@ it('shows the latest 100 observations and reuses each ticker and interval indepe
 }, 8_000);
 
 it('draws the high–low stem with the open tick on the left and the close tick on the right', async () => {
+  stubDailyResponse();
   render(<App />);
   const candleChart = await screen.findByRole(
     'img',

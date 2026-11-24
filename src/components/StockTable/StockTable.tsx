@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 
+import { Button } from '@/components/ui/Button/Button';
 import type { StockDataPoint } from '@/types/stock';
 import {
   formatObservationDate,
@@ -32,9 +33,13 @@ const defaultSort: { column: Column; direction: Direction } = {
 export function StockTable({
   observations,
   series,
+  selectedDate,
+  onObservationSelect,
 }: {
   observations: readonly StockDataPoint[];
   series?: string;
+  selectedDate?: string;
+  onObservationSelect?: (date: string) => void;
 }) {
   const heading = useId();
   const [currentSeries, setCurrentSeries] = useState(series);
@@ -117,19 +122,41 @@ export function StockTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((observation) => (
-              <tr key={observation.date}>
-                <th scope="row">
-                  <time dateTime={observation.date}>
-                    {formatObservationDate(observation.date)}
-                  </time>
-                </th>
-                {priceColumns.map(({ key }) => (
-                  <td key={key}>{formatPrice(observation[key])}</td>
-                ))}
-                <td>{formatShareCount(observation.volume)}</td>
-              </tr>
-            ))}
+            {rows.map((observation) => {
+              const date = (
+                <time dateTime={observation.date}>
+                  {formatObservationDate(observation.date)}
+                </time>
+              );
+              return (
+                <tr
+                  key={observation.date}
+                  onClick={
+                    onObservationSelect &&
+                    (() => onObservationSelect(observation.date))
+                  }
+                >
+                  <th scope="row">
+                    {onObservationSelect ? (
+                      <Button
+                        className="stock-table-date"
+                        aria-current={
+                          observation.date === selectedDate || undefined
+                        }
+                      >
+                        {date}
+                      </Button>
+                    ) : (
+                      date
+                    )}
+                  </th>
+                  {priceColumns.map(({ key }) => (
+                    <td key={key}>{formatPrice(observation[key])}</td>
+                  ))}
+                  <td>{formatShareCount(observation.volume)}</td>
+                </tr>
+              );
+            })}
             {rows.length < PAGE_SIZE && (
               <tr
                 aria-hidden="true"
