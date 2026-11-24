@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { Statistic } from '@/components/ui/Statistic';
 import type { StockDataPoint, StockInterval } from '@/types/stock';
 import { formatPrice, formatShareCount } from '@/utils/stockFormatting';
 
@@ -97,7 +98,7 @@ export function CandlestickChart({
       'Volume',
       readoutObservation && formatShareCount(readoutObservation.volume),
     ],
-  ];
+  ] as const;
 
   function inspectPointer(
     event: PointerEvent<SVGSVGElement>,
@@ -155,23 +156,20 @@ export function CandlestickChart({
         aria-label="Inspected observation"
       >
         <dl className="chart-readout">
-          <div>
-            <dt>Date</dt>
-            <dd>
-              {readoutObservation ? (
+          <Statistic
+            label="Date"
+            value={
+              readoutObservation ? (
                 <time dateTime={readoutObservation.date}>
                   {readoutObservation.date}
                 </time>
               ) : (
                 '—'
-              )}
-            </dd>
-          </div>
+              )
+            }
+          />
           {fields.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value ?? '—'}</dd>
-            </div>
+            <Statistic key={label} label={label} value={value ?? '—'} />
           ))}
         </dl>
       </div>

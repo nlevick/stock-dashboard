@@ -372,19 +372,16 @@ button {
   color: var(--chart-down);
 }
 
-.stock-summary,
-.chart-readout {
+.statistic {
   font-variant-numeric: tabular-nums;
 }
 
-.stock-summary dt,
-.chart-readout dt {
+.statistic > dt {
   margin-bottom: 0.1875rem;
   color: var(--text-secondary);
 }
 
-.stock-summary dd,
-.chart-readout dd {
+.statistic > dd {
   font-weight: 500;
   overflow-wrap: anywhere;
 }

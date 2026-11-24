@@ -1,5 +1,6 @@
 import { useId } from 'react';
 
+import { Statistic } from '@/components/ui/Statistic';
 import type { StockDataPoint } from '@/types/stock';
 import {
   formatObservationDate,
@@ -20,34 +21,34 @@ export function StockSummary({
         Daily statistics
       </h3>
       <dl className="stock-summary" aria-labelledby={heading}>
-        <div>
-          <dt>At close</dt>
-          <dd>
-            {observation ? (
+        <Statistic
+          label="At close"
+          value={
+            observation ? (
               <time dateTime={observation.date}>
                 {formatObservationDate(observation.date)}
               </time>
             ) : (
               '—'
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>Open</dt>
-          <dd>{observation ? formatPrice(observation.open) : '—'}</dd>
-        </div>
-        <div>
-          <dt>Day range</dt>
-          <dd>
-            {observation
+            )
+          }
+        />
+        <Statistic
+          label="Open"
+          value={observation ? formatPrice(observation.open) : '—'}
+        />
+        <Statistic
+          label="Day range"
+          value={
+            observation
               ? `${formatPrice(observation.low)} – ${formatPrice(observation.high)}`
-              : '—'}
-          </dd>
-        </div>
-        <div>
-          <dt>Volume</dt>
-          <dd>{observation ? formatShareCount(observation.volume) : '—'}</dd>
-        </div>
+              : '—'
+          }
+        />
+        <Statistic
+          label="Volume"
+          value={observation ? formatShareCount(observation.volume) : '—'}
+        />
       </dl>
     </div>
   );
