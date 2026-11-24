@@ -197,7 +197,6 @@ button {
   background: transparent;
   text-align: start;
   color: inherit;
-  cursor: pointer;
 }
 
 .symbol-rail button:hover,

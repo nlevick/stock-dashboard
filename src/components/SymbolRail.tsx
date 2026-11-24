@@ -1,5 +1,7 @@
 import { instruments, type InstrumentSymbol } from '@/data/instruments';
 
+import { TickerItem } from './TickerItem';
+
 interface SymbolRailProps {
   symbol: InstrumentSymbol;
   onSelect: (symbol: InstrumentSymbol) => void;
@@ -10,22 +12,13 @@ export function SymbolRail({ symbol, onSelect }: SymbolRailProps) {
     <div className="symbol-rail glass-panel" role="group" aria-label="Ticker">
       <h2>Symbols</h2>
       {instruments.map((instrument) => (
-        <button
+        <TickerItem
           key={instrument.symbol}
-          type="button"
-          aria-label={instrument.symbol}
-          aria-describedby={`instrument-${instrument.symbol}`}
-          aria-pressed={symbol === instrument.symbol}
-          onClick={() => onSelect(instrument.symbol)}
-        >
-          <strong>{instrument.symbol}</strong>
-          <span
-            className="visually-hidden"
-            id={`instrument-${instrument.symbol}`}
-          >
-            {instrument.name}
-          </span>
-        </button>
+          symbol={instrument.symbol}
+          name={instrument.name}
+          selected={symbol === instrument.symbol}
+          onSelect={() => onSelect(instrument.symbol)}
+        />
       ))}
     </div>
   );
