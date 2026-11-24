@@ -1,0 +1,31 @@
+.data-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.data-status-loading {
+  color: var(--accent);
+}
+
+.data-status [role='alert'] {
+  color: var(--chart-down);
+}
+
+.data-status-retry {
+  border: 1px solid currentColor;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8125rem;
+}
+
+@media (pointer: coarse) {
+  .data-status-retry {
+    min-height: 44px;
+  }
+}

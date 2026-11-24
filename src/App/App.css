@@ -1,0 +1,51 @@
+.price-history {
+  display: grid;
+  container-type: inline-size;
+  gap: 0.125rem 0.625rem;
+  padding-block: 1.125rem;
+  padding-inline: clamp(0.75rem, 2.5vw, 1.5rem);
+}
+
+@media (min-width: 1080px) {
+  .price-history {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'quote quote'
+      'observation controls'
+      'plot plot'
+      'instructions instructions';
+    column-gap: 1.5rem;
+    align-items: center;
+  }
+
+  .price-history > .quote-header {
+    grid-area: quote;
+  }
+
+  .price-history > .chart-controls {
+    grid-area: controls;
+  }
+
+  .price-history > .chart-observation {
+    grid-area: observation;
+  }
+
+  .price-history > .chart-plot {
+    grid-area: plot;
+  }
+
+  .price-history > .chart-instructions {
+    grid-area: instructions;
+  }
+
+  .price-history > .chart-controls,
+  .price-history > .chart-observation {
+    margin-block-start: 2.5rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .price-history {
+    padding-block: 0.625rem;
+  }
+}

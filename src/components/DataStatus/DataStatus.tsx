@@ -34,7 +34,7 @@ export function DataStatus({
       <p role={error ? 'alert' : 'status'}>
         {error ? `${errorLabel}. ${error.message}` : emptyMessage}
       </p>
-      <Button className="dashboard-button" onClick={retry}>
+      <Button className="data-status-retry" onClick={retry}>
         {retryLabel}
       </Button>
     </div>

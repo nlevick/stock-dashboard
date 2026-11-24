@@ -1,0 +1,13 @@
+.statistic {
+  font-variant-numeric: tabular-nums;
+}
+
+.statistic > dt {
+  margin-bottom: 0.1875rem;
+  color: var(--text-secondary);
+}
+
+.statistic > dd {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}

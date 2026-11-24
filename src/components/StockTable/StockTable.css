@@ -1,5 +1,8 @@
 .stock-history {
   container-type: inline-size;
+  display: grid;
+  gap: 0.625rem;
+  padding: 0.875rem clamp(0.75rem, 2.5vw, 1.5rem);
 }
 
 .stock-history h2 {
@@ -109,6 +112,28 @@
 
 .stock-table-pagination button {
   min-width: 2rem;
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--control-surface);
+  box-shadow: inset 0 0 0 1px var(--panel-edge);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.stock-table-pagination
+  button:where(:enabled:not([aria-disabled='true'])):hover {
+  background: var(--control-hover);
+  color: var(--accent);
+}
+
+.stock-table-pagination
+  button:where(:enabled:not([aria-disabled='true'])):active {
+  background: var(--selected-surface);
+  box-shadow: inset 0 0 0 1px var(--selected-edge);
+  color: var(--accent);
 }
 
 .stock-table-pagination button:is(:disabled, [aria-disabled='true']) {
@@ -116,7 +141,19 @@
   cursor: default;
 }
 
+@media (pointer: coarse) {
+  .stock-table-pagination button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 760px) {
+  .stock-history {
+    gap: 0.5rem;
+    padding-block: 0.625rem;
+  }
+
   .stock-table-scroll {
     --stock-row-height: 1.75rem;
   }
