@@ -9,11 +9,30 @@ geometry, and React renders the SVG.
 
 | Area              | Responsibility                                                                                                              | Start here                                                                                                                                                                                            |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard state   | Owns the selected ticker, interval, and chart view. Coordinates the daily quote and active history.                         | [App](../App.tsx)                                                                                                                                                                                     |
+| Dashboard state   | Owns the selected ticker, interval, and chart view. Coordinates the daily quote and active history.                         | [App](../App/App.tsx)                                                                                                                                                                                 |
 | Data              | Selects the source, validates and normalizes observations, caches development responses, and maps failures to typed errors. | [API client](../services/stockApi.ts), [parser](../services/parseStockData.ts), [cache](../services/cache.ts)                                                                                         |
 | Request lifecycle | Tracks the current request and retry attempt, aborts superseded requests, and ignores late results.                         | [Data hook](../hooks/useStockData.ts)                                                                                                                                                                 |
 | Chart             | Computes scales and marks, measures the SVG, and handles pointer and keyboard inspection.                                   | [Chart model](../components/CandlestickChart/chartModel.ts), [chart interaction](../components/CandlestickChart/CandlestickChart.tsx), [SVG plot](../components/CandlestickChart/CandlestickPlot.tsx) |
-| Table and layout  | Sorts and pages the active history. Styles define responsive layouts, focus treatment, and theme tokens.                    | [Stock table](../components/StockTable/StockTable.tsx), [theme and layout](../styles/theme.css)                                                                                                       |
+| History table     | Sorts the active series and renders it in a bounded scroll area with a sticky header.                                       | [Stock table](../components/StockTable/StockTable.tsx)                                                                                                                                                 |
+
+## Shared UI
+
+`src/components/ui` holds the reusable controls and label–value display.
+`Button` wraps a native button and defaults to `type="button"`.
+`SegmentedControl` renders both the Daily/Weekly text buttons and the
+Candles/Bars/Line icon buttons. `Statistic` renders a label and value inside
+a description list, both in the daily stock summary and in the chart’s date
+and OHLCV readout.
+[Chart controls](../components/CandlestickChart/ChartControls/ChartControls.tsx) ·
+[Daily stock summary](../components/QuoteHeader/StockSummary.tsx) ·
+[Chart readout](../components/CandlestickChart/CandlestickChart.tsx)
+
+Features own their layout and domain-specific rendering. `SymbolRail` owns
+`TickerItem`, which composes `Button` with ticker details. The chart owns its
+scales, axes, and SVG marks. Component styles live alongside the components
+that use them. `index.html` loads `theme.css`, which imports those styles and
+defines shared tokens, base styles, and focus treatment.
+[Dashboard layout](../App/App.css) · [Theme stylesheet](../styles/theme.css)
 
 ## Data sources and request budget
 
@@ -39,7 +58,7 @@ geometry, and React renders the SVG.
 1. The [data hook](../hooks/useStockData.ts) associates each result with its
    ticker, interval, and retry attempt. Effect cleanup aborts superseded work,
    so a late response cannot replace the current selection.
-2. On a ticker or interval change, the [dashboard](../App.tsx) keeps the previous
+2. On a ticker or interval change, the [dashboard](../App/App.tsx) keeps the previous
    chart and table visible while the requested data loads. The quote keeps
    the ticker of the data on screen, and the chart dims beneath a loading
    status. The dashboard switches once the active requests settle.
@@ -63,8 +82,20 @@ geometry, and React renders the SVG.
 - **Inspection.** The chart converts pointer position into the nearest
   observation using D3's `bisectCenter`. A touch selection stays visible
   after release. Keyboard navigation updates the same readout and publishes
-  the selected date and values in a status region for screen readers. The daily
-  quote stays fixed while the user inspects the history.
+  the selected date and values in a status region for screen readers.
+- **Table selection.** Selecting a row or activating its date button pins that
+  observation. `App` stores the pin by displayed ticker, interval, and date.
+  The table marks the pinned row, and the chart uses the date to position its
+  crosshair and update the readout. Hover previews another observation and
+  restores the pin when the pointer leaves. Using the chart’s inspection keys
+  or tapping the plot replaces the pin with a chart selection. The pin also
+  clears when the displayed series changes or the selected date disappears.
+  The daily quote continues to show the latest daily observation.
+- **Table scrolling.** Sorting keeps the pin and resets the table’s vertical
+  scroll. When the displayed series changes, the table returns to newest-first
+  order and scrolls to the top. If a row had keyboard focus, focus moves to the
+  scroll region. If the table becomes empty while focus is anywhere in the
+  scroll region, focus moves to the table heading.
 - **Layout and access.** A `ResizeObserver` remeasures the plot, and the chart
   reduces tick density at smaller sizes. CSS reflows the ticker controls and
   chart readout, increases key control sizes for coarse pointers, and gives
@@ -83,9 +114,10 @@ npm run build
 Vitest covers the parser, cache, and chart calculations without a live API
 key. React Testing Library tests exercise the rendered UI with controlled
 responses. The suite checks stale requests, throttling and retry, independent
-quote and history failures, keyboard, pointer, and touch inspection, and table
-sorting and paging.
+quote and history failures, keyboard, pointer, and touch inspection, table
+sorting and row activation, chart pin restoration, full-series rendering, and
+focus recovery when the displayed series changes.
 
-[Dashboard tests](../App.test.tsx) · [Request tests](../hooks/useStockData.test.tsx) ·
+[Dashboard tests](../App/App.test.tsx) · [Request tests](../hooks/useStockData.test.tsx) ·
 [Chart tests](../components/CandlestickChart/CandlestickChart.test.tsx) ·
 [Table tests](../components/StockTable/StockTable.test.tsx)

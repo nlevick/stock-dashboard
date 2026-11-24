@@ -4,13 +4,13 @@ import { CandlestickChart } from '@/components/CandlestickChart/CandlestickChart
 import {
   ChartControls,
   type ChartView,
-} from '@/components/CandlestickChart/ChartControls';
-import { DashboardShell } from '@/components/DashboardShell';
-import { DataStatus } from '@/components/DataStatus';
+} from '@/components/CandlestickChart/ChartControls/ChartControls';
+import { DashboardShell } from '@/components/DashboardShell/DashboardShell';
+import { DataStatus } from '@/components/DataStatus/DataStatus';
 import { QuoteHeader } from '@/components/QuoteHeader/QuoteHeader';
 import { StockTable } from '@/components/StockTable/StockTable';
-import { SymbolRail } from '@/components/SymbolRail';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { SymbolRail } from '@/components/SymbolRail/SymbolRail';
+import { ThemeToggle } from '@/components/ThemeToggle/ThemeToggle';
 import { instruments, type InstrumentSymbol } from '@/data/instruments';
 import { useStockData } from '@/hooks/useStockData';
 import { useTheme } from '@/hooks/useTheme';
@@ -36,6 +36,10 @@ function App() {
   });
   const [view, setView] = useState<ChartView>('candles');
   const [previous, setPrevious] = useState<Prices | null>(null);
+  const [tablePin, setTablePin] = useState<{
+    series: string;
+    date: string;
+  } | null>(null);
   const daily = useStockData(symbol);
   const weekly = useStockData(interval === 'weekly' ? symbol : null, 'weekly');
   const active = interval === 'daily' ? daily : weekly;
@@ -52,6 +56,13 @@ function App() {
       };
   const { quote, history } = displayed;
   const historyLoading = active.loading || showingPrevious;
+  const series = `${displayed.symbol}-${displayed.interval}`;
+  const activePin =
+    tablePin?.series === series &&
+    history.some(({ date }) => date === tablePin.date)
+      ? tablePin
+      : undefined;
+  if (tablePin && !activePin) setTablePin(null);
 
   function select(next: Selection) {
     if (next.symbol === symbol && next.interval === interval) return;
@@ -107,6 +118,8 @@ function App() {
           interval={displayed.interval}
           view={view}
           loading={historyLoading}
+          tablePin={activePin}
+          onTablePinClear={() => setTablePin(null)}
           status={
             <DataStatus
               loading={historyLoading}
@@ -125,7 +138,9 @@ function App() {
       </section>
       <StockTable
         observations={history}
-        series={`${displayed.symbol}-${displayed.interval}`}
+        series={series}
+        selectedDate={activePin?.date}
+        onObservationSelect={(date) => setTablePin({ series, date })}
       />
     </DashboardShell>
   );

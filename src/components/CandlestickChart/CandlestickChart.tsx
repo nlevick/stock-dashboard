@@ -9,12 +9,13 @@ import {
   type ReactNode,
 } from 'react';
 
+import { Statistic } from '@/components/ui/Statistic/Statistic';
 import type { StockDataPoint, StockInterval } from '@/types/stock';
 import { formatPrice, formatShareCount } from '@/utils/stockFormatting';
 
 import { CandlestickPlot } from './CandlestickPlot';
 import { buildChartModel, CHART_HEIGHT, CHART_WIDTH } from './chartModel';
-import type { ChartView } from './ChartControls';
+import type { ChartView } from './ChartControls/ChartControls';
 
 interface CandlestickChartProps {
   data: readonly StockDataPoint[];
@@ -22,12 +23,16 @@ interface CandlestickChartProps {
   view: ChartView;
   loading?: boolean;
   status?: ReactNode;
+  // A new object represents a new table activation, even for the same date.
+  tablePin?: { date: string };
+  onTablePinClear?: () => void;
 }
 
 interface ObservationSelection {
   data: readonly StockDataPoint[];
   date: string;
   source: 'pointer' | 'touch' | 'keyboard';
+  tablePin?: CandlestickChartProps['tablePin'];
 }
 
 const MIN_CHART_WIDTH = 160;
@@ -39,6 +44,8 @@ export function CandlestickChart({
   view,
   loading = false,
   status,
+  tablePin,
+  onTablePinClear,
 }: CandlestickChartProps) {
   const chartRef = useRef<SVGSVGElement>(null);
   const instructionsId = useId();
@@ -48,7 +55,11 @@ export function CandlestickChart({
   });
   const [observationSelection, setObservationSelection] =
     useState<ObservationSelection | null>(null);
-  if (observationSelection && observationSelection.data !== data) {
+  if (
+    observationSelection &&
+    (observationSelection.data !== data ||
+      (tablePin && observationSelection.tablePin !== tablePin))
+  ) {
     setObservationSelection(null);
   }
   const model = useMemo(
@@ -57,8 +68,9 @@ export function CandlestickChart({
   );
   const hasData = data.length > 0;
   const latestObservation = data[data.length - 1];
-  const selectedIndex = observationSelection
-    ? data.findIndex(({ date }) => date === observationSelection.date)
+  const selectedDate = observationSelection?.date ?? tablePin?.date;
+  const selectedIndex = selectedDate
+    ? data.findIndex(({ date }) => date === selectedDate)
     : -1;
   const selectedObservation =
     selectedIndex === -1 ? undefined : data[selectedIndex];
@@ -97,7 +109,18 @@ export function CandlestickChart({
       'Volume',
       readoutObservation && formatShareCount(readoutObservation.volume),
     ],
-  ];
+  ] as const;
+
+  function inspect(index: number, source: ObservationSelection['source']) {
+    const date = data[index].date;
+    if (
+      observationSelection?.source !== source ||
+      observationSelection.date !== date
+    ) {
+      setObservationSelection({ data, date, source, tablePin });
+    }
+    if (source !== 'pointer' && tablePin) onTablePinClear?.();
+  }
 
   function inspectPointer(
     event: PointerEvent<SVGSVGElement>,
@@ -105,16 +128,10 @@ export function CandlestickChart({
   ) {
     const bounds = event.currentTarget.getBoundingClientRect();
     if (!hasData || bounds.width <= 0) return;
-    const index = model.indexAt(
-      ((event.clientX - bounds.left) * width) / bounds.width
+    inspect(
+      model.indexAt(((event.clientX - bounds.left) * width) / bounds.width),
+      source
     );
-    const date = data[index].date;
-    if (
-      observationSelection?.source !== source ||
-      observationSelection.date !== date
-    ) {
-      setObservationSelection({ data, date, source });
-    }
   }
 
   function handleChartKeyDown(event: KeyboardEvent<SVGSVGElement>) {
@@ -140,11 +157,7 @@ export function CandlestickChart({
     }
 
     event.preventDefault();
-    setObservationSelection({
-      data,
-      date: data[index].date,
-      source: 'keyboard',
-    });
+    inspect(index, 'keyboard');
   }
 
   return (
@@ -155,23 +168,20 @@ export function CandlestickChart({
         aria-label="Inspected observation"
       >
         <dl className="chart-readout">
-          <div>
-            <dt>Date</dt>
-            <dd>
-              {readoutObservation ? (
+          <Statistic
+            label="Date"
+            value={
+              readoutObservation ? (
                 <time dateTime={readoutObservation.date}>
                   {readoutObservation.date}
                 </time>
               ) : (
                 '—'
-              )}
-            </dd>
-          </div>
+              )
+            }
+          />
           {fields.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value ?? '—'}</dd>
-            </div>
+            <Statistic key={label} label={label} value={value ?? '—'} />
           ))}
         </dl>
       </div>

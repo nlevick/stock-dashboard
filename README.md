@@ -4,9 +4,9 @@ A React and TypeScript dashboard for exploring daily and weekly prices for SPY a
 
 **[Live demo](https://nlevick.github.io/stock-dashboard/)** · [Architecture](src/docs/ARCHITECTURE.md)
 
-![Stock Dashboard in dark mode with the SPY candlestick chart and historical prices table](src/docs/dashboard.png)
+![Stock Dashboard in dark mode with a historical SPY row pinned to the matching candlestick](src/docs/dashboard.png)
 
-I built it as a small, rate-limited API dashboard. It has 100 observations per series, supports keyboard and touch inspection, and shows loading and retry states.
+I built it as a small, rate-limited API dashboard. Sort and scroll the price history, then select a row to pin that date on the chart. The chart supports keyboard and touch inspection, and the dashboard shows loading and retry states.
 
 ## Run locally
 
