@@ -288,7 +288,6 @@ button {
 }
 
 .ui-button:enabled,
-.chart-controls button,
 .stock-table-pagination button {
   cursor: pointer;
 }
