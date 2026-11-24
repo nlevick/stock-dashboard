@@ -109,11 +109,6 @@
   margin-inline-start: 0.125rem;
 }
 
-.stock-table-count {
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-}
-
 @media (max-width: 760px) {
   .stock-history {
     gap: 0.5rem;

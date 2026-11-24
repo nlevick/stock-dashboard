@@ -134,7 +134,7 @@ it('activates the sorted observation by date button and by price cell', () => {
   );
 });
 
-it('renders the full series and updates the rows and count when it shrinks', () => {
+it('renders the full series and updates the rows when it shrinks', () => {
   const fullSeries = Array.from({ length: 100 }, (_, index) => ({
     ...observations[0],
     date: new Date(Date.UTC(2025, 0, index + 1)).toISOString().slice(0, 10),
@@ -145,12 +145,10 @@ it('renders the full series and updates the rows and count when it shrinks', () 
   );
 
   expect(table.getAllByRole('rowheader')).toHaveLength(100);
-  expect(screen.getByRole('status').textContent).toBe('100 observations');
   rerender(<StockTable observations={observations.slice(0, 2)} />);
   expect(
     table.getAllByRole('rowheader').map((cell) => cell.textContent)
   ).toEqual(['Jan 1, 2025', 'Dec 10, 2024']);
-  expect(screen.getByRole('status').textContent).toBe('2 observations');
 });
 
 it.each([

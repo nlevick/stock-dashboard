@@ -194,10 +194,6 @@ export function StockTable({
           </tbody>
         </table>
       </div>
-      <p className="stock-table-count" role="status">
-        {observations.length}{' '}
-        {observations.length === 1 ? 'observation' : 'observations'}
-      </p>
     </section>
   );
 }
