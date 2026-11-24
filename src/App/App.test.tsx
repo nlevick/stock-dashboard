@@ -9,9 +9,10 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
-import App from '@/App';
 import { fetchStockData } from '@/services/stockApi';
 import type { StockData } from '@/types/stock';
+
+import App from './App';
 
 vi.mock('@/services/stockApi', () => ({ fetchStockData: vi.fn() }));
 

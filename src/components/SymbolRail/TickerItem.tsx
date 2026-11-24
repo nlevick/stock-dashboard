@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button/Button';
 
 interface TickerItemProps {
   symbol: string;

@@ -9,7 +9,7 @@ geometry, and React renders the SVG.
 
 | Area              | Responsibility                                                                                                              | Start here                                                                                                                                                                                            |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard state   | Owns the selected ticker, interval, and chart view. Coordinates the daily quote and active history.                         | [App](../App.tsx)                                                                                                                                                                                     |
+| Dashboard state   | Owns the selected ticker, interval, and chart view. Coordinates the daily quote and active history.                         | [App](../App/App.tsx)                                                                                                                                                                                 |
 | Data              | Selects the source, validates and normalizes observations, caches development responses, and maps failures to typed errors. | [API client](../services/stockApi.ts), [parser](../services/parseStockData.ts), [cache](../services/cache.ts)                                                                                         |
 | Request lifecycle | Tracks the current request and retry attempt, aborts superseded requests, and ignores late results.                         | [Data hook](../hooks/useStockData.ts)                                                                                                                                                                 |
 | Chart             | Computes scales and marks, measures the SVG, and handles pointer and keyboard inspection.                                   | [Chart model](../components/CandlestickChart/chartModel.ts), [chart interaction](../components/CandlestickChart/CandlestickChart.tsx), [SVG plot](../components/CandlestickChart/CandlestickPlot.tsx) |
@@ -39,7 +39,7 @@ geometry, and React renders the SVG.
 1. The [data hook](../hooks/useStockData.ts) associates each result with its
    ticker, interval, and retry attempt. Effect cleanup aborts superseded work,
    so a late response cannot replace the current selection.
-2. On a ticker or interval change, the [dashboard](../App.tsx) keeps the previous
+2. On a ticker or interval change, the [dashboard](../App/App.tsx) keeps the previous
    chart and table visible while the requested data loads. The quote keeps
    the ticker of the data on screen, and the chart dims beneath a loading
    status. The dashboard switches once the active requests settle.
@@ -86,6 +86,6 @@ responses. The suite checks stale requests, throttling and retry, independent
 quote and history failures, keyboard, pointer, and touch inspection, and table
 sorting and paging.
 
-[Dashboard tests](../App.test.tsx) · [Request tests](../hooks/useStockData.test.tsx) ·
+[Dashboard tests](../App/App.test.tsx) · [Request tests](../hooks/useStockData.test.tsx) ·
 [Chart tests](../components/CandlestickChart/CandlestickChart.test.tsx) ·
 [Table tests](../components/StockTable/StockTable.test.tsx)

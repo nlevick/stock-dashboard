@@ -10,7 +10,7 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import App from '@/App';
+import App from '@/App/App';
 
 import { CHART_HEIGHT, CHART_WIDTH } from './chartModel';
 

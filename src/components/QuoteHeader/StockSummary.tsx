@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { Statistic } from '@/components/ui/Statistic';
+import { Statistic } from '@/components/ui/Statistic/Statistic';
 import type { StockDataPoint } from '@/types/stock';
 import {
   formatObservationDate,

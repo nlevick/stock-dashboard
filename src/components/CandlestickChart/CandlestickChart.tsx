@@ -9,13 +9,13 @@ import {
   type ReactNode,
 } from 'react';
 
-import { Statistic } from '@/components/ui/Statistic';
+import { Statistic } from '@/components/ui/Statistic/Statistic';
 import type { StockDataPoint, StockInterval } from '@/types/stock';
 import { formatPrice, formatShareCount } from '@/utils/stockFormatting';
 
 import { CandlestickPlot } from './CandlestickPlot';
 import { buildChartModel, CHART_HEIGHT, CHART_WIDTH } from './chartModel';
-import type { ChartView } from './ChartControls';
+import type { ChartView } from './ChartControls/ChartControls';
 
 interface CandlestickChartProps {
   data: readonly StockDataPoint[];

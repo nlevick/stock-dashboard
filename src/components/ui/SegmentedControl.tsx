@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 
-import { Button } from './Button';
+import { Button } from './Button/Button';
 
 interface SegmentedOption<Value extends string> {
   value: Value;

@@ -1,6 +1,6 @@
 import { MoonIcon } from '@/components/icons/MoonIcon';
 import { SunIcon } from '@/components/icons/SunIcon';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button/Button';
 import { THEME } from '@/hooks/useTheme';
 
 interface ThemeToggleProps {

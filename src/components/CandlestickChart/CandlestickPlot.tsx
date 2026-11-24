@@ -8,7 +8,7 @@ import type { StockDataPoint, StockInterval } from '@/types/stock';
 import { formatPrice } from '@/utils/stockFormatting';
 
 import type { buildChartModel } from './chartModel';
-import type { ChartView } from './ChartControls';
+import type { ChartView } from './ChartControls/ChartControls';
 
 interface CandlestickPlotProps {
   data: readonly StockDataPoint[];
